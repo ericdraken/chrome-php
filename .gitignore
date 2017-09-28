@@ -1,0 +1,11 @@
+/testing/
+/vendor/
+/node_modules/
+!package-lock.json
+composer.lock
+.idea
+*.patch
+data
+__*
+.DS_Store
+Thumbs.db

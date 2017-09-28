@@ -1,0 +1,48 @@
+{
+  "name": "ericdraken/chrome-php",
+  "description": "Parallel headless Chrome interaction via PHP",
+  "version": "0.1.0",
+  "keywords": ["chrome", "headless", "php"],
+  "homepage": "http://github.com/ericdraken/chrome-php",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Eric Draken",
+      "email": "chrome-php@ericdraken.com",
+      "homepage": "https://ericdraken.com"
+    }
+  ],
+  "require": {
+    "php": "^7.0",
+    "psr/log": "^1.0",
+    "symfony/process": "^3.1",
+    "guzzlehttp/promises": "^1.0",
+    "mouf/nodejs-installer": "^1.0",
+    "eloquent/composer-npm-bridge": "^4"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^6.3",
+    "monolog/monolog": "^1.23"
+  },
+  "extra": {
+    "mouf": {
+      "nodejs": {
+        "version": "^8.1",
+        "targetDir": "vendor/nodejs/nodejs",
+        "forceLocal": false,
+        "includeBinInPath": true
+      }
+    }
+  },
+  "autoload": {
+    "psr-4" : {
+      "Draken\\ChromePHP\\" : "src/ChromePHP"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "DrakenTest\\ChromePHP\\": "tests/ChromePHP"
+    }
+  }
+}
