@@ -231,6 +231,52 @@ class DOMInfoProcessTest extends TestCase
 	}
 
 	/**
+	 * Test that the process was not successful on a bad domain
+	 */
+	public function testBadDomainRequest()
+	{
+		$process = new DOMInfoProcess( 'http://notgoingtowork.edu' );
+
+		// Enable debugging
+		$process->setEnv([
+			'LOG_LEVEL' => 'debug'
+		]);
+
+		$manager = new ChromeProcessManager( self::$defaultPort, 1 );
+
+		// Enqueue the job
+		$manager
+			->enqueue( $process )
+			->then( function ( DOMInfoProcess $successfulProcess ) use ( &$obj, &$procSucceeded )
+			{
+				$procSucceeded = true;
+			}, function ( DOMInfoProcess $failedProcess ) use ( &$obj, &$procFailed, &$out )
+			{
+				$obj = $failedProcess->getDomInfoObj();
+				$out = $failedProcess->getErrorOutput();
+				$procFailed = true;
+			} );
+
+		$manager->then( null, function () use ( &$queueFailed )
+		{
+			$queueFailed = true;
+		} );
+
+		// Start processing
+		$manager->run();
+
+		$procSucceeded && $this->fail( "Process should not have succeeded" );
+		! $procFailed && $this->fail( "Process should have failed" );
+		$queueFailed && $this->fail( "Queue should not have failed" );
+
+		$this->assertInstanceOf( DOMInfo::class, $obj );
+
+		/** @var DOMInfo $obj */
+		$this->assertEquals( 0, $obj->status );
+		$this->assertEmpty( $obj->lastResponse );
+	}
+
+	/**
 	 * Test that the process was not successful on an image request
 	 */
 	public function testImageRequest()

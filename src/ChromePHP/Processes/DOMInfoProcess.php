@@ -142,11 +142,14 @@ class DOMInfoProcess extends NodeProcess
 
 class DOMInfo
 {
-	/** @var string */
-	public $requestUrl = "";
+	/** @var bool */
+	public $ok = false;
 
 	/** @var int */
 	public $status = 0;
+
+	/** @var string */
+	public $requestUrl = "";
 
 	/** @var ResponseInfo */
 	public $lastResponse;

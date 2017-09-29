@@ -27,6 +27,8 @@ const purl = require('url');
 const wsep = chrome.wsep;
 const temp = chrome.temp;
 const url = argv.url || false;
+const networkIdleTimeout = argv.idletime || 500; // 0.5s
+const timeout = argv.timeout || 10000; // 10s
 
 // Sanity
 if (!url) {
@@ -37,6 +39,7 @@ if (!url) {
 logger.info('URL: %s', url);
 
 let results = {
+    "ok" : false,
     "status" : 0,
     "requestUrl" : "",
     "lastResponse" : false,
@@ -147,9 +150,9 @@ let requests = new Map();
         else
         {
             logger.debug('First request: %s from %s', status, response.request().url);
-            results.lastResponse = obj;
             results.ok = response.ok;
             results.status = status;
+            results.lastResponse = obj;
         }
     });
 
@@ -205,12 +208,23 @@ let requests = new Map();
 
     logger.info('Navigating to %s', url);
 
-    // TODO: timeout?
-
     // Navigate to the URL with a timeout
     await page.goto(url, {
         waitUntil: 'networkidle',
-        // networkIdleTimeout : 10000
+        networkIdleTimeout : networkIdleTimeout,  // min idle duration to be considered 'idle'
+        timeout: timeout   // Navigation must complete in this time
+    }).catch((err) => {
+
+        // REF: https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagegotourl-options
+        // The page.goto will throw an error if:
+        //
+        // * there's an SSL error (e.g. in case of self-signed certificates).
+        // * target URL is invalid.
+        // * the timeout is exceeded during navigation.
+        // * the main resource failed to load.
+
+        results.errors.push(err.message);
+        logger.error('Navigation error:', err.message);
     });
 
     logger.debug('Getting rendered page content');
@@ -293,7 +307,6 @@ let requests = new Map();
 
         // Clean logging
         logger.error('UncaughtException:', err.message);
-        logger.error(err.stack);
         exitCode = 1;
 
     }).then(async () => {
