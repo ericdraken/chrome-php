@@ -59,11 +59,11 @@ let requests = new Map();
     let responseToObj = (request, response) => {
         return {
             url: request.url,
-            status: response.status,
+            status: response ? response.status : 0,
             type: request.resourceType,
             method: request.method,
             requestHeaders: request.headers,
-            responseHeaders: response.headers
+            responseHeaders: response ? response.headers : {}
         };
     };
 
@@ -81,7 +81,6 @@ let requests = new Map();
     page.evaluateOnNewDocument(function(levels) {
         (function(){
             let c = console;
-            //const levels = ['debug', 'info', 'warn', 'error', 'log'];
             levels.forEach((level) => {
                 c[level+'old'] = c[level];
                 console[level] = function () {
@@ -231,7 +230,7 @@ let requests = new Map();
         let response = requestStart.response();
 
         // Follow redirects
-        while (response.status >= 300 && response.status <= 399)
+        while (response && response.status >= 300 && response.status <= 399)
         {
             // This is an error condition
             if (!response.headers.hasOwnProperty('location'))
@@ -272,7 +271,7 @@ let requests = new Map();
 
         // Save requests and failures
         results.requests.push(obj);
-        if (!response.ok) {
+        if (!response || !response.ok) {
             results.failed.push(obj);
         }
     }
@@ -280,7 +279,9 @@ let requests = new Map();
 })()
     .catch((err) => {
 
-        logger.error(err);
+        // Clean logging
+        logger.error('UncaughtException:', err.message);
+        logger.error(err.stack);
         exitCode = 1;
 
     }).then(async () => {
