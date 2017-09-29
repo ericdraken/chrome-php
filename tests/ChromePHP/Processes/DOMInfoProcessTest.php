@@ -316,6 +316,51 @@ class DOMInfoProcessTest extends TestCase
 	}
 
 	/**
+	 * Test that we get all the console messages
+	 */
+	public function testScriptErrors()
+	{
+		$process = new DOMInfoProcess( self::$server."/errors.html" );
+
+		// Enable debugging
+		$process->setEnv([
+			'LOG_LEVEL' => 'debug'
+		]);
+
+		$manager = new ChromeProcessManager( self::$defaultPort, 1 );
+
+		// Enqueue the job
+		$manager
+			->enqueue( $process )
+			->then( function ( DOMInfoProcess $successfulProcess ) use ( &$obj )
+			{
+				$out = $successfulProcess->getErrorOutput();
+				$obj = $successfulProcess->getDomInfoObj();
+
+			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out )
+			{
+				$out = $failedProcess->getErrorOutput();
+				$procFailed = true;
+			} );
+
+		$manager->then( null, function () use ( &$queueFailed )
+		{
+			$queueFailed = true;
+		} );
+
+		// Start processing
+		$manager->run();
+
+		$procFailed && $this->fail( "Process should not have failed" );
+		$queueFailed && $this->fail( "Queue should not have failed" );
+
+		/** @var DOMInfo $obj */
+		$this->assertCount( 2, $obj->errors );
+		$this->assertContains( 'FunctionNotFound', $obj->errors[0] );
+		$this->assertContains( 'MethodNotFound', $obj->errors[1] );
+	}
+
+	/**
 	 * Test that a redirect chain is followed and recorded
 	 */
 	public function testRedirectChain()

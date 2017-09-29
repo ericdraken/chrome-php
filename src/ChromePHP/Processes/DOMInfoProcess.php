@@ -169,6 +169,9 @@ class DOMInfo
 	/** @var ResponseInfo[] */
 	public $failed = [];
 
+	/** @var string[] */
+	public $errors = [];
+
 	/**
 	 * @param \stdClass $data
 	 */
@@ -181,12 +184,21 @@ class DOMInfo
 
 		foreach ( $data as $key => $value )
 		{
-			// First response
+			// Response to initial request
 			if ( is_object( $value ) ) {
 				$this->{$key} = new ResponseInfo( $value );
 			}
 
-			// Failures objects and redirect objects
+			// Error messages are plain strings
+			else if ( is_array( $value ) && count( $value ) && is_string( $value[0] ) )
+			{
+				foreach ( $value as $msg ) {
+					$this->{$key}[] = $msg;
+				}
+				continue;
+			}
+
+			// Failure objects and redirect objects
 			else if ( is_array( $value ) && count( $value ) && is_object( $value[0] )  )
 			{
 				foreach ( $value as $obj ) {

@@ -45,7 +45,8 @@ let results = {
     "renderedHtml" : "",
     "consoleLogs" : [],
     "requests" : [],
-    "failed" : []
+    "failed" : [],
+    "errors" : [],
 };
 
 let browser;
@@ -109,7 +110,9 @@ let requests = new Map();
         }
     });
 
-    // Save the URL of the first request
+    // Save all the request objects to later
+    // map them to their responses in order
+    // to follow redirect chains
     page.on('request', (request) => {
         "use strict";
         if (!results.requestUrl.length) {
@@ -135,7 +138,7 @@ let requests = new Map();
         let obj = responseToObj(response.request(), response);
         let status = parseInt(response.status, 10);
 
-        // Record the redirects of the first request
+        // Record the redirects of the initial request
         if (status >= 300 && status <= 399) {
             logger.debug('Got response %s from %s', status, response.request().url);
             results.redirectChain.push(obj);
@@ -146,10 +149,11 @@ let requests = new Map();
             logger.debug('First request: %s from %s', status, response.request().url);
             results.lastResponse = obj;
             results.ok = response.ok;
+            results.status = status;
         }
     });
 
-    // Save raw HTML response of the first request
+    // Save raw HTML response of the initial request
     page.on('response', async (response) => {
         "use strict";
         // Gate
@@ -188,9 +192,16 @@ let requests = new Map();
         });
     });
 
-    // TODO: on error
-
-    // TODO: on pageerror
+    // Keep track of errors and exceptions
+    // errorObj is 'new Error(message)', but the docs
+    // say the return type is "<string> The exception message"
+    let errorLogging = (errorObj) => {
+        "use strict";
+        logger.warn('%s: %s', errorObj.name, errorObj.message);
+        results.errors.push(errorObj.toString());
+    };
+    page.on('error', errorLogging);
+    page.on('pageerror', errorLogging);
 
     logger.info('Navigating to %s', url);
 
@@ -212,8 +223,9 @@ let requests = new Map();
 
     logger.debug('There were %s requests', requests.size);
 
-    // Follow redirect chains to match an initial request
-    // to the final response and result
+    // Follow redirect chains to match requests to
+    // their final responses. In other words, compress the
+    // redirect chain down into a single request-response pair
     while (requests.size)
     {
         // "Unshift" the first entry in the map
