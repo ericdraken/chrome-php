@@ -50,6 +50,7 @@ let results = {
     "requests" : [],
     "failed" : [],
     "errors" : [],
+    "loadTime": -1
 };
 
 let browser;
@@ -209,12 +210,20 @@ let requests = new Map();
     logger.info('Navigating to %s', url);
 
     // Navigate to the URL with a timeout
+    let t0 = process.hrtime();
     await page.goto(url, {
         waitUntil: 'networkidle',
-        networkIdleTimeout : networkIdleTimeout,  // min idle duration to be considered 'idle'
+        networkIdleTimeout: networkIdleTimeout,  // min idle duration to be considered 'idle'
         timeout: timeout   // Navigation must complete in this time
-    }).catch((err) => {
+    }).then(() => {
 
+        // Note the page load time only for successful connections
+        // Also, subtract the idle timeout time
+        let diff = process.hrtime(t0);
+        results.loadTime = (((diff[0] * 1e9) + diff[1]) - (networkIdleTimeout * 1e6)) / 1e6;  // ns --> ms
+        logger.debug('Page loaded in %s s', results.loadTime / 1000.0);
+
+    }).catch((err) => {
         // REF: https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagegotourl-options
         // The page.goto will throw an error if:
         //

@@ -175,6 +175,9 @@ class DOMInfo
 	/** @var string[] */
 	public $errors = [];
 
+	/** @var int */
+	public $loadTime = -1;
+
 	/**
 	 * @param \stdClass $data
 	 */
