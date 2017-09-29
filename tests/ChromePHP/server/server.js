@@ -22,6 +22,33 @@ http.createServer(function (req, res) {
     // extract URL path
     let pathname = parsedUrl.pathname;
 
+    // Create a redirect chain
+    if (pathname === '/307/') {
+        res.writeHead(307, {
+            'Location': '/302/'
+        });
+        res.end();
+        return;
+    }
+
+    // Continue a redirect chain
+    if (pathname === '/302/') {
+        res.writeHead(302, {
+            'Location': '/301/'
+        });
+        res.end();
+        return;
+    }
+
+    // Finish a redirect chain
+    if (pathname === '/301/') {
+        res.writeHead(301, {
+            'Location': '/index.html'
+        });
+        res.end();
+        return;
+    }
+
     // Limit parent folder access
     pathname = pathname.replace(/^(\.)+/, '.');
 

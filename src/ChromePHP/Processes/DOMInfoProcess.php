@@ -142,14 +142,17 @@ class DOMInfoProcess extends NodeProcess
 
 class DOMInfo
 {
-	/** @var bool */
-	public $ok = false;
-
 	/** @var string */
 	public $requestUrl = "";
 
+	/** @var int */
+	public $status = 0;
+
 	/** @var ResponseInfo */
-	public $response;
+	public $lastResponse;
+
+	/** @var ResponseInfo[] */
+	public $redirectChain = [];
 
 	/** @var string */
 	public $rawHtml = "";
@@ -183,7 +186,7 @@ class DOMInfo
 				$this->{$key} = new ResponseInfo( $value );
 			}
 
-			// Failures objects
+			// Failures objects and redirect objects
 			else if ( is_array( $value ) && count( $value ) && is_object( $value[0] )  )
 			{
 				foreach ( $value as $obj ) {
@@ -205,8 +208,8 @@ class ResponseInfo
 	/** @var string */
 	public $url = "";
 
-	/** @var string */
-	public $status = "";
+	/** @var int */
+	public $status = 0;
 
 	/** @var string */
 	public $type = "";
@@ -214,11 +217,11 @@ class ResponseInfo
 	/** @var string */
 	public $method = "";
 
-	/** @var string */
-	public $requestHeaders = "";
+	/** @var \stdClass */
+	public $requestHeaders;
 
-	/** @var string */
-	public $reasponseHeaders = "";
+	/** @var \stdClass */
+	public $responseHeaders;
 
 	/**
 	 * @param \stdClass $data
