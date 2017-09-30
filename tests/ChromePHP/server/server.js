@@ -22,32 +22,19 @@ http.createServer(function (req, res) {
     // extract URL path
     let pathname = parsedUrl.pathname;
 
+    /** testRedirectChain() **/
+
     // Create a redirect chain
-    if (pathname === '/307/') {
-        res.writeHead(307, {
-            'Location': '/302/'
-        });
-        res.end();
-        return;
-    }
+    if (pathname === '/307-1/') { res.writeHead(307, {'Location': '/302-1/'}); res.end(); return; }
+    if (pathname === '/302-1/') { res.writeHead(302, {'Location': '/301-1/'}); res.end(); return; }
+    if (pathname === '/301-1/') { res.writeHead(301, {'Location': '/index.html'}); res.end(); return; }
 
-    // Continue a redirect chain
-    if (pathname === '/302/') {
-        res.writeHead(302, {
-            'Location': '/301/'
-        });
-        res.end();
-        return;
-    }
+    /** testMixedRedirectChain() **/
 
-    // Finish a redirect chain
-    if (pathname === '/301/') {
-        res.writeHead(301, {
-            'Location': '/index.html'
-        });
-        res.end();
-        return;
-    }
+    if (pathname === '/302-2/') { res.writeHead(302, {'Location': '/301-2/'}); res.end(); return; }
+    if (pathname === '/301-2/') { res.writeHead(301, {'Location': '/meta-redirect-2.html'}); res.end(); return; }
+    if (pathname === '/302-3/') { res.writeHead(302, {'Location': '/301-3/'}); res.end(); return; }
+    if (pathname === '/301-3/') { res.writeHead(301, {'Location': '/index.html'}); res.end(); return; }
 
     // Limit parent folder access
     pathname = pathname.replace(/^(\.)+/, '.');

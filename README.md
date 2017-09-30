@@ -10,10 +10,12 @@ PHP launches and manages headless Chrome browsers, including respawing killed br
 The most common use cases are:
 
 * Crawl web sites for 404 errors, JavaScript errors and mismatched HTML tags
+* Check page load times in bulk
 * Take screenshots in bulk
 * Unit test web interactions
 * Keep tabs on keyword rankings
 * Monitor web infrastructure and partner sites
+* Follow mixed redirect chains (301, 302, meta-refresh, document.location, etc)
 
 Installation
 ------------

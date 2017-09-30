@@ -197,6 +197,11 @@ class DOMInfoProcessTest extends TestCase
 	{
 		$process = new DOMInfoProcess( self::$server."/notextist" );
 
+		// Enable debugging
+		$process->setEnv([
+			'LOG_LEVEL' => 'debug'
+		]);
+
 		$manager = new ChromeProcessManager( self::$defaultPort, 1 );
 
 		// Enqueue the job
@@ -407,11 +412,11 @@ class DOMInfoProcessTest extends TestCase
 	}
 
 	/**
-	 * Test that a redirect chain is followed and recorded
+	 * Test that a meta redirect is followed and recorded
 	 */
-	public function testRedirectChain()
+	public function testMetaRedirect()
 	{
-		$process = new DOMInfoProcess( self::$server."/307/" );
+		$process = new DOMInfoProcess( self::$server."/meta-redirect-1.html" );
 
 		// Enable debugging
 		$process->setEnv([
@@ -425,6 +430,7 @@ class DOMInfoProcessTest extends TestCase
 			->enqueue( $process )
 			->then( function ( DOMInfoProcess $successfulProcess ) use ( &$obj )
 			{
+				$out = $successfulProcess->getErrorOutput();
 				$obj = $successfulProcess->getDomInfoObj();
 
 			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out )
@@ -445,9 +451,103 @@ class DOMInfoProcessTest extends TestCase
 		$queueFailed && $this->fail( "Queue should not have failed" );
 
 		/** @var DOMInfo $obj */
-		$this->assertCount( 3, $obj->redirectChain );
+		$this->assertCount( 1, $obj->redirectChain );
 		$this->assertEquals( 200, $obj->lastResponse->status );
 		$this->assertCount( 0, $obj->failed );
-		$this->assertCount( 1, $obj->requests );
+		$this->assertCount( 2, $obj->requests );
+		$this->assertNotEquals( $obj->requestUrl, $obj->lastResponse->url );
+	}
+
+	/**
+	 * Test that a JS redirect is followed and recorded
+	 */
+	public function testJSRedirect()
+	{
+		$process = new DOMInfoProcess( self::$server."/javascript-redirect-1.html" );
+
+		// Enable debugging
+		$process->setEnv([
+			'LOG_LEVEL' => 'debug'
+		]);
+
+		$manager = new ChromeProcessManager( self::$defaultPort, 1 );
+
+		// Enqueue the job
+		$manager
+			->enqueue( $process )
+			->then( function ( DOMInfoProcess $successfulProcess ) use ( &$obj )
+			{
+				$out = $successfulProcess->getErrorOutput();
+				$obj = $successfulProcess->getDomInfoObj();
+
+			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out )
+			{
+				$out = $failedProcess->getErrorOutput();
+				$procFailed = true;
+			} );
+
+		$manager->then( null, function () use ( &$queueFailed )
+		{
+			$queueFailed = true;
+		} );
+
+		// Start processing
+		$manager->run();
+
+		$procFailed && $this->fail( "Process should not have failed" );
+		$queueFailed && $this->fail( "Queue should not have failed" );
+
+		/** @var DOMInfo $obj */
+		$this->assertCount( 1, $obj->redirectChain );
+		$this->assertEquals( 200, $obj->lastResponse->status );
+		$this->assertCount( 0, $obj->failed );
+		$this->assertCount( 2, $obj->requests );
+		$this->assertNotEquals( $obj->requestUrl, $obj->lastResponse->url );
+	}
+
+	/**
+	 * Test that a redirect chain is followed and recorded
+	 */
+	public function testMixedRedirectChain()
+	{
+		$process = new DOMInfoProcess( self::$server."/302-2/" );
+
+		// Enable debugging
+		$process->setEnv([
+			'LOG_LEVEL' => 'debug'
+		]);
+
+		$manager = new ChromeProcessManager( self::$defaultPort, 1 );
+
+		// Enqueue the job
+		$manager
+			->enqueue( $process )
+			->then( function ( DOMInfoProcess $successfulProcess ) use ( &$obj )
+			{
+				$out = $successfulProcess->getErrorOutput();
+				$obj = $successfulProcess->getDomInfoObj();
+
+			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out )
+			{
+				$out = $failedProcess->getErrorOutput();
+				$procFailed = true;
+			} );
+
+		$manager->then( null, function () use ( &$queueFailed )
+		{
+			$queueFailed = true;
+		} );
+
+		// Start processing
+		$manager->run();
+
+		$procFailed && $this->fail( "Process should not have failed" );
+		$queueFailed && $this->fail( "Queue should not have failed" );
+
+		/** @var DOMInfo $obj */
+		$this->assertCount( 5, $obj->redirectChain );
+		$this->assertEquals( 200, $obj->lastResponse->status );
+		$this->assertCount( 0, $obj->failed );
+		$this->assertCount( 2, $obj->requests );
 	}
 }

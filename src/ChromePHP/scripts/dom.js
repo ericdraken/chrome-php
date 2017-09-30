@@ -57,6 +57,8 @@ let browser;
 let page;
 let exitCode = 0;
 let requests = new Map();
+let rawHTML = new Map();
+let mainRequests = [];
 
 (async() => {
 
@@ -119,10 +121,6 @@ let requests = new Map();
     // to follow redirect chains
     page.on('request', (request) => {
         "use strict";
-        if (!results.requestUrl.length) {
-            logger.debug( 'Got first request %s', request.url );
-            results.requestUrl = request.url;
-        }
 
         // Skip data-uri images
         if (request.url.indexOf('data:image') === 0)
@@ -132,39 +130,12 @@ let requests = new Map();
         requests.set(request.url, request);
     });
 
-    // Save redirected request objects
-    page.on('response', (response) => {
-        "use strict";
-        // Only interested in the first redirect chain
-        if (results.lastResponse)
-            return;
 
-        let obj = responseToObj(response.request(), response);
-        let status = parseInt(response.status, 10);
-
-        // Record the redirects of the initial request
-        if (status >= 300 && status <= 399) {
-            logger.debug('Got response %s from %s', status, response.request().url);
-            results.redirectChain.push(obj);
-        }
-        // Response for the first request
-        else
-        {
-            logger.debug('First request: %s from %s', status, response.request().url);
-            results.ok = response.ok;
-            results.status = status;
-            results.lastResponse = obj;
-        }
-    });
-
-    // Save raw HTML response of the initial request
+    // Save raw HTML response of all the requests
+    // because we don't know which one is the last
+    // in a chain of redirects and meta redirects
     page.on('response', async (response) => {
         "use strict";
-        // Gate
-        if (response.url !== results.requestUrl) {
-            return
-        }
-
         let contentType =
             response.headers.hasOwnProperty('content-type') ?
                 response.headers['content-type'] :
@@ -175,9 +146,22 @@ let requests = new Map();
             return;
         }
 
-        logger.debug("Got response for: %s", response.url);
+        logger.debug("Got raw HTML for: %s", response.url);
         const buffer = await response.buffer();
-        results.rawHtml = buffer.toString('utf8');
+        rawHTML.set(response.url, buffer.toString('utf8'));
+    });
+
+    // Monitor main frame navigation activity to
+    // detect meta refresh and script-invoked redirects. This
+    // is detected after the response is received, so just make
+    // a note of this request for post processing
+    page.on('framenavigated', (frame) => {
+        "use strict";
+        if (frame === page.mainFrame())
+        {
+            logger.debug('Main request navigated to %s', frame.url());
+            mainRequests.push(frame.url());
+        }
     });
 
     page.on('load', () => {
@@ -209,19 +193,33 @@ let requests = new Map();
 
     logger.info('Navigating to %s', url);
 
+    // Store the initial request
+    results.requestUrl = url;
+
     // Navigate to the URL with a timeout
-    let t0 = process.hrtime();
+    const t0 = process.hrtime();
     await page.goto(url, {
         waitUntil: 'networkidle',
         networkIdleTimeout: networkIdleTimeout,  // min idle duration to be considered 'idle'
         timeout: timeout   // Navigation must complete in this time
-    }).then(() => {
+    }).then((response) => {
 
         // Note the page load time only for successful connections
         // Also, subtract the idle timeout time
         let diff = process.hrtime(t0);
         results.loadTime = (((diff[0] * 1e9) + diff[1]) - (networkIdleTimeout * 1e6)) / 1e6;  // ns --> ms
         logger.debug('Page loaded in %s s', results.loadTime / 1000.0);
+        return response;
+
+    }).then((response) => {
+
+        // Record the last results in the redirect chain
+        let obj = responseToObj(response.request(), response);
+        results.ok = response.ok;
+        results.status = response.status;
+        results.lastResponse = obj;
+        results.rawHtml = rawHTML.get(response.url) || '';
+        logger.debug('Last response in main request chain: %s', response.url);
 
     }).catch((err) => {
         // REF: https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagegotourl-options
@@ -251,6 +249,8 @@ let requests = new Map();
     // redirect chain down into a single request-response pair
     while (requests.size)
     {
+        let chain = [];
+
         // "Unshift" the first entry in the map
         let next = requests.entries().next().value;
         let requestStart = next[1];
@@ -263,6 +263,9 @@ let requests = new Map();
         }
 
         let response = requestStart.response();
+
+        // Start the chain
+        chain.push(response);
 
         // Follow redirects
         while (response && response.status >= 300 && response.status <= 399)
@@ -299,6 +302,9 @@ let requests = new Map();
             logger.debug(nextRequest.url);
 
             response = nextRequest.response();
+
+            // Continue the chain
+            chain.push(response);
         }
 
         // Response will be the last in the chain
@@ -309,7 +315,23 @@ let requests = new Map();
         if (!response || !response.ok) {
             results.failed.push(obj);
         }
+
+        // Check if this is a main request chain
+        if (mainRequests.length && response && response.url === mainRequests[0])
+        {
+            logger.debug('This is a main request: %s', requestStart.url);
+            mainRequests.shift();   // Remove
+
+            // Add this chain segment to the redirect chain
+            chain.forEach((response) => {
+                let obj = responseToObj(response.request(), response);
+                results.redirectChain.push(obj);
+            });
+        }
     }
+
+    // The last entry is represented by 'lastResponse'
+    results.redirectChain.length && results.redirectChain.pop();
 
 })()
     .catch((err) => {
