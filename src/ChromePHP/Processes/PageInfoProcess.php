@@ -1,6 +1,6 @@
 <?php
 /**
- * ChromePHP - DOMInfoProcess.php
+ * ChromePHP - PageInfoProcess.php
  * Created by: Eric Draken
  * Date: 2017/9/26
  * Copyright (c) 2017
@@ -13,19 +13,17 @@ use Draken\ChromePHP\Core\NodeProcess;
 use Draken\ChromePHP\Exceptions\HttpResponseException;
 use Draken\ChromePHP\Exceptions\InvalidArgumentException;
 use Draken\ChromePHP\Exceptions\RuntimeException;
+use Draken\ChromePHP\Processes\HTTP\RenderedHTTPPageInfo;
 use Draken\ChromePHP\Queue\PromiseProxy;
 use Draken\ChromePHP\Utils\Paths;
-use GuzzleHttp\Promise\RejectedPromise;
-use GuzzleHttp\Promise\RejectionException;
-use Prophecy\Promise\CallbackPromise;
 
-class DOMInfoProcess extends NodeProcess
+class PageInfoProcess extends NodeProcess
 {
-	/** @var DOMInfo */
+	/** @var RenderedHTTPPageInfo */
 	private $domInfoObj;
 
 	/**
-	 * DOMInfoProcess constructor.
+	 * PageInfoProcess constructor.
 	 *
 	 * @param string $url
 	 * @param array $args
@@ -44,21 +42,21 @@ class DOMInfoProcess extends NodeProcess
 
 		// Merge the args array with the mandatory argument,
 		// but always use the --url param supplied below
-		parent::__construct(Paths::getNodeScriptsPath() . '/dom.js', array_merge($args, [
+		parent::__construct(Paths::getNodeScriptsPath() . '/page.js', array_merge($args, [
 			'--url='.$url
 		]), $timeout, false, false);
 
 		// Set an empty object as the result
-		$this->domInfoObj = new DOMInfo();
+		$this->domInfoObj = new RenderedHTTPPageInfo();
 
 		// Setup a new wait function
 		$this->setupPromiseProxyResolver();
 	}
 
 	/**
-	 * @return DOMInfo
+	 * @return RenderedHTTPPageInfo
 	 */
-	public function getDomInfoObj(): DOMInfo
+	public function getDomInfoObj(): RenderedHTTPPageInfo
 	{
 		return $this->domInfoObj;
 	}
@@ -84,7 +82,7 @@ class DOMInfoProcess extends NodeProcess
 					$this->domInfoObj = $this->processNodeResults();
 
 					// Was the initial request successful?
-					if ( $this->domInfoObj->ok ) {
+					if ( $this->domInfoObj->isOk() ) {
 						$this->promise->resolve( $this );
 					} else {
 						// The response was not ok
@@ -117,9 +115,9 @@ class DOMInfoProcess extends NodeProcess
 	 * Retrieve the NodeJS temp file JSON data and
 	 * inflate it back into an object
 	 *
-	 * @return DOMInfo
+	 * @return RenderedHTTPPageInfo
 	 */
-	private function processNodeResults(): DOMInfo
+	private function processNodeResults(): RenderedHTTPPageInfo
 	{
 		// Winston debug logs
 		LoggableBase::logger()->info( "NodeJS debug logs:" . PHP_EOL . $this->getErrorOutput() );
@@ -136,126 +134,6 @@ class DOMInfoProcess extends NodeProcess
 			throw new RuntimeException("Couldn't parse the JSON contents: " . substr( $contents, 0, 50) . '...');
 		}
 
-		return new DOMInfo( $obj );
-	}
-}
-
-class DOMInfo
-{
-	/** @var bool */
-	public $ok = false;
-
-	/** @var int */
-	public $status = 0;
-
-	/** @var string */
-	public $requestUrl = "";
-
-	/** @var ResponseInfo */
-	public $lastResponse;
-
-	/** @var ResponseInfo[] */
-	public $redirectChain = [];
-
-	/** @var string */
-	public $rawHtml = "";
-
-	/** @var string */
-	public $renderedHtml = "";
-
-	/** @var array */
-	public $consoleLogs = [];
-
-	/** @var array */
-	public $requests = [];
-
-	/** @var ResponseInfo[] */
-	public $failed = [];
-
-	/** @var string[] */
-	public $errors = [];
-
-	/** @var int */
-	public $loadTime = -1;
-
-	/**
-	 * @param \stdClass $data
-	 */
-	public function __construct( \stdClass $data = null )
-	{
-		if ( is_null( $data ) )
-		{
-			return $this;
-		}
-
-		foreach ( $data as $key => $value )
-		{
-			// Response to initial request
-			if ( is_object( $value ) ) {
-				$this->{$key} = new ResponseInfo( $value );
-			}
-
-			// Error messages are plain strings
-			else if ( is_array( $value ) && count( $value ) && is_string( $value[0] ) )
-			{
-				foreach ( $value as $msg ) {
-					$this->{$key}[] = $msg;
-				}
-				continue;
-			}
-
-			// Failure objects and redirect objects
-			else if ( is_array( $value ) && count( $value ) && is_object( $value[0] )  )
-			{
-				foreach ( $value as $obj ) {
-					$this->{$key}[] = new ResponseInfo( $obj );
-				}
-				continue;
-			}
-
-			// Primitives
-			$this->{$key} = $value;
-		}
-
-		return $this;
-	}
-}
-
-class ResponseInfo
-{
-	/** @var string */
-	public $url = "";
-
-	/** @var int */
-	public $status = 0;
-
-	/** @var string */
-	public $type = "";
-
-	/** @var string */
-	public $method = "";
-
-	/** @var \stdClass */
-	public $requestHeaders;
-
-	/** @var \stdClass */
-	public $responseHeaders;
-
-	/**
-	 * @param \stdClass $data
-	 */
-	public function __construct( \stdClass $data = null )
-	{
-		if ( is_null( $data ) )
-		{
-			return $this;
-		}
-
-		foreach ( $data as $key => $value )
-		{
-			$this->{$key} = $value;
-		}
-
-		return $this;
+		return new RenderedHTTPPageInfo( $obj );
 	}
 }

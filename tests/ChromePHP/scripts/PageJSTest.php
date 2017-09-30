@@ -1,6 +1,6 @@
 <?php
 /**
- * ChromePHP - DomJSTest.php
+ * ChromePHP - PageJSTest.phpp
  * Created by: Eric Draken
  * Date: 2017/9/27
  * Copyright (c) 2017
@@ -14,7 +14,7 @@ use Draken\ChromePHP\Core\NodeProcess;
 use Draken\ChromePHP\Utils\Paths;
 use PHPUnit\Framework\TestCase;
 
-class DomJSTest extends TestCase
+class PageJSTest extends TestCase
 {
 	private static $defaultPort = 9222;
 
@@ -50,7 +50,7 @@ class DomJSTest extends TestCase
 		$manager = new ChromeProcessManager( self::$defaultPort, 1 );
 
 		// Node process from a string
-		$process = new NodeProcess( Paths::getNodeScriptsPath() . '/dom.js', [
+		$process = new NodeProcess( Paths::getNodeScriptsPath() . '/page.js', [
 			'--url='.$testUrl
 		], 1 );
 
@@ -106,7 +106,7 @@ class DomJSTest extends TestCase
 		$manager = new ChromeProcessManager( self::$defaultPort, 1 );
 
 		// Node process from a string
-		$process = new NodeProcess( Paths::getNodeScriptsPath() . '/dom.js', [
+		$process = new NodeProcess( Paths::getNodeScriptsPath() . '/page.js', [
 			'--url='.$testUrl
 		], 1, false, false );
 
@@ -168,7 +168,7 @@ HTML;
 		$manager = new ChromeProcessManager( self::$defaultPort, 1 );
 
 		// Node process from a string
-		$process = new NodeProcess( Paths::getNodeScriptsPath() . '/dom.js', [
+		$process = new NodeProcess( Paths::getNodeScriptsPath() . '/page.js', [
 			'--url='.$testUrl
 		], 1, false, false );
 
@@ -228,7 +228,7 @@ HTML;
 		$manager = new ChromeProcessManager( self::$defaultPort, 1 );
 
 		// Node process from a string
-		$process = new NodeProcess( Paths::getNodeScriptsPath() . '/dom.js', [
+		$process = new NodeProcess( Paths::getNodeScriptsPath() . '/page.js', [
 			'--url='.$testUrl
 		], 1, false, false );
 

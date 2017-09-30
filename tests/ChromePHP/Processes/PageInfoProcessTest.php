@@ -1,6 +1,6 @@
 <?php
 /**
- * ChromePHP - DOMInfoProcessTest.php
+ * ChromePHP - PageInfoProcessTest.php
  * Created by: Eric Draken
  * Date: 2017/9/28
  * Copyright (c) 2017
@@ -12,10 +12,11 @@ use Draken\ChromePHP\Commands\LinuxCommands;
 use Draken\ChromePHP\Core\ChromeProcessManager;
 use Draken\ChromePHP\Core\NodeProcess;
 use Draken\ChromePHP\Exceptions\InvalidArgumentException;
+use Draken\ChromePHP\Processes\HTTP\RenderedHTTPPageInfo;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Process\Process;
 
-class DOMInfoProcessTest extends TestCase
+class PageInfoProcessTest extends TestCase
 {
 	private static $defaultPort = 9222;
 
@@ -72,7 +73,7 @@ class DOMInfoProcessTest extends TestCase
 	 */
 	public function testConstructor()
 	{
-		new DOMInfoProcess( self::$server."/index.html" );
+		new PageInfoProcess( self::$server . "/index.html" );
 		$this->addToAssertionCount(1);
 	}
 
@@ -82,7 +83,7 @@ class DOMInfoProcessTest extends TestCase
 	public function testConstructorEmptyUrl()
 	{
 		$this->expectException( InvalidArgumentException::class );
-		new DOMInfoProcess( '' );
+		new PageInfoProcess( '' );
 	}
 
 	/**
@@ -92,7 +93,7 @@ class DOMInfoProcessTest extends TestCase
 	{
 		$url = 'http://example.com';
 
-		$process = new DOMInfoProcess( $url );
+		$process = new PageInfoProcess( $url );
 
 		$args = $this->getObjectAttribute( $process, 'userScriptArgs' );
 
@@ -106,7 +107,7 @@ class DOMInfoProcessTest extends TestCase
 	{
 		$url = 'http://example.com';
 
-		$process = new DOMInfoProcess( $url, [
+		$process = new PageInfoProcess( $url, [
 			'--url=http://yahoo.com'
 		] );
 
@@ -121,14 +122,14 @@ class DOMInfoProcessTest extends TestCase
 	 */
 	public function testInfoObjectReturned()
 	{
-		$process = new DOMInfoProcess( self::$server."/index.html" );
+		$process = new PageInfoProcess( self::$server . "/index.html" );
 
 		$manager = new ChromeProcessManager( self::$defaultPort, 1 );
 
 		// Enqueue the job
 		$manager
 			->enqueue( $process )
-			->then( function ( DOMInfoProcess $successfulProcess ) use ( &$obj )
+			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj )
 			{
 				$obj = $successfulProcess->getDomInfoObj();
 
@@ -149,22 +150,22 @@ class DOMInfoProcessTest extends TestCase
 		$procFailed && $this->fail( "Process should not have failed" );
 		$queueFailed && $this->fail( "Queue should not have failed" );
 
-		$this->assertInstanceOf( DOMInfo::class, $obj );
+		$this->assertInstanceOf( RenderedHTTPPageInfo::class, $obj );
 	}
 
 	/**
 	 * Test that we get an info object back
 	 */
-	public function testRenderedHtml()
+	public function testgetRenderedHtml()
 	{
-		$process = new DOMInfoProcess( self::$server."/render.html" );
+		$process = new PageInfoProcess( self::$server . "/render.html" );
 
 		$manager = new ChromeProcessManager( self::$defaultPort, 1 );
 
 		// Enqueue the job
 		$manager
 			->enqueue( $process )
-			->then( function ( DOMInfoProcess $successfulProcess ) use ( &$obj )
+			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj )
 			{
 				$obj = $successfulProcess->getDomInfoObj();
 
@@ -185,9 +186,9 @@ class DOMInfoProcessTest extends TestCase
 		$procFailed && $this->fail( "Process should not have failed" );
 		$queueFailed && $this->fail( "Queue should not have failed" );
 
-		/** @var DOMInfo $obj */
-		$this->assertNotContains( 'rendered', $obj->rawHtml );
-		$this->assertContains( 'rendered', $obj->renderedHtml );
+		/** @var RenderedHTTPPageInfo $obj */
+		$this->assertNotContains( 'rendered', $obj->getRawHtml() );
+		$this->assertContains( 'rendered', $obj->getRenderedHtml() );
 	}
 
 	/**
@@ -195,7 +196,7 @@ class DOMInfoProcessTest extends TestCase
 	 */
 	public function test404Request()
 	{
-		$process = new DOMInfoProcess( self::$server."/notextist" );
+		$process = new PageInfoProcess( self::$server . "/notextist" );
 
 		// Enable debugging
 		$process->setEnv([
@@ -207,10 +208,10 @@ class DOMInfoProcessTest extends TestCase
 		// Enqueue the job
 		$manager
 			->enqueue( $process )
-			->then( function ( DOMInfoProcess $successfulProcess ) use ( &$obj, &$procSucceeded )
+			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj, &$procSucceeded )
 			{
 				$procSucceeded = true;
-			}, function ( DOMInfoProcess $failedProcess ) use ( &$obj, &$procFailed, &$out )
+			}, function ( PageInfoProcess $failedProcess ) use ( &$obj, &$procFailed, &$out )
 			{
 				$obj = $failedProcess->getDomInfoObj();
 				$out = $failedProcess->getErrorOutput();
@@ -229,10 +230,10 @@ class DOMInfoProcessTest extends TestCase
 		! $procFailed && $this->fail( "Process should have failed" );
 		$queueFailed && $this->fail( "Queue should not have failed" );
 
-		$this->assertInstanceOf( DOMInfo::class, $obj );
+		$this->assertInstanceOf( RenderedHTTPPageInfo::class, $obj );
 
-		/** @var DOMInfo $obj */
-		$this->assertEquals( 404, $obj->lastResponse->status );
+		/** @var RenderedHTTPPageInfo $obj */
+		$this->assertEquals( 404, $obj->getLastResponse()->getStatus() );
 	}
 
 	/**
@@ -240,7 +241,7 @@ class DOMInfoProcessTest extends TestCase
 	 */
 	public function testBadDomainRequest()
 	{
-		$process = new DOMInfoProcess( 'http://notgoingtowork.edu' );
+		$process = new PageInfoProcess( 'http://notgoingtowork.edu' );
 
 		// Enable debugging
 		$process->setEnv([
@@ -252,10 +253,10 @@ class DOMInfoProcessTest extends TestCase
 		// Enqueue the job
 		$manager
 			->enqueue( $process )
-			->then( function ( DOMInfoProcess $successfulProcess ) use ( &$obj, &$procSucceeded )
+			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj, &$procSucceeded )
 			{
 				$procSucceeded = true;
-			}, function ( DOMInfoProcess $failedProcess ) use ( &$obj, &$procFailed, &$out )
+			}, function ( PageInfoProcess $failedProcess ) use ( &$obj, &$procFailed, &$out )
 			{
 				$obj = $failedProcess->getDomInfoObj();
 				$out = $failedProcess->getErrorOutput();
@@ -274,11 +275,12 @@ class DOMInfoProcessTest extends TestCase
 		! $procFailed && $this->fail( "Process should have failed" );
 		$queueFailed && $this->fail( "Queue should not have failed" );
 
-		$this->assertInstanceOf( DOMInfo::class, $obj );
+		$this->assertInstanceOf( RenderedHTTPPageInfo::class, $obj );
 
-		/** @var DOMInfo $obj */
-		$this->assertEquals( 0, $obj->status );
-		$this->assertEmpty( $obj->lastResponse );
+		/** @var RenderedHTTPPageInfo $obj */
+		$this->assertEquals( 0, $obj->getStatus() );
+		$this->assertNotEmpty( $obj->getLastResponse() );
+		$this->assertEquals( 0, $obj->getLastResponse()->getStatus() );
 	}
 
 	/**
@@ -286,14 +288,14 @@ class DOMInfoProcessTest extends TestCase
 	 */
 	public function testImageRequest()
 	{
-		$process = new DOMInfoProcess( self::$server."/image.jpg" );
+		$process = new PageInfoProcess( self::$server . "/image.jpg" );
 
 		$manager = new ChromeProcessManager( self::$defaultPort, 1 );
 
 		// Enqueue the job
 		$manager
 			->enqueue( $process )
-			->then( function ( DOMInfoProcess $successfulProcess ) use ( &$obj )
+			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj )
 			{
 				$obj = $successfulProcess->getDomInfoObj();
 
@@ -314,14 +316,14 @@ class DOMInfoProcessTest extends TestCase
 		$procFailed && $this->fail( "Process should not have failed" );
 		$queueFailed && $this->fail( "Queue should not have failed" );
 
-		$this->assertInstanceOf( DOMInfo::class, $obj );
+		$this->assertInstanceOf( RenderedHTTPPageInfo::class, $obj );
 
-		/** @var DOMInfo $obj */
-		$this->assertEquals( 200, $obj->lastResponse->status );
-		$this->assertTrue( $obj->ok );
-		$this->assertEmpty( $obj->rawHtml );
-		$this->assertEmpty( $obj->renderedHtml );
-		$this->assertEquals( 'image/jpeg', $obj->lastResponse->responseHeaders->{'content-type'} );
+		/** @var RenderedHTTPPageInfo $obj */
+		$this->assertEquals( 200, $obj->getLastResponse()->getStatus() );
+		$this->assertTrue( $obj->isOk() );
+		$this->assertEmpty( $obj->getRawHtml() );
+		$this->assertEmpty( $obj->getRenderedHtml() );
+		$this->assertEquals( 'image/jpeg', $obj->getLastResponse()->getResponseHeaders()->{'content-type'} );
 	}
 
 	/**
@@ -329,14 +331,14 @@ class DOMInfoProcessTest extends TestCase
 	 */
 	public function testConsoleLogs()
 	{
-		$process = new DOMInfoProcess( self::$server."/console.html" );
+		$process = new PageInfoProcess( self::$server . "/console.html" );
 
 		$manager = new ChromeProcessManager( self::$defaultPort, 1 );
 
 		// Enqueue the job
 		$manager
 			->enqueue( $process )
-			->then( function ( DOMInfoProcess $successfulProcess ) use ( &$obj )
+			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj )
 			{
 				$obj = $successfulProcess->getDomInfoObj();
 
@@ -357,13 +359,13 @@ class DOMInfoProcessTest extends TestCase
 		$procFailed && $this->fail( "Process should not have failed" );
 		$queueFailed && $this->fail( "Queue should not have failed" );
 
-		/** @var DOMInfo $obj */
+		/** @var RenderedHTTPPageInfo $obj */
 		// Console logs check
-		$this->assertStringStartsWith( 'DEBUG:', $obj->consoleLogs[0] );
-		$this->assertStringStartsWith( 'INFO:', $obj->consoleLogs[1] );
-		$this->assertStringStartsWith( 'WARN:', $obj->consoleLogs[2] );
-		$this->assertStringStartsWith( 'ERROR:', $obj->consoleLogs[3] );
-		$this->assertStringStartsWith( 'LOG:', $obj->consoleLogs[4] );
+		$this->assertStringStartsWith( 'DEBUG:', $obj->getConsoleLogs()[0] );
+		$this->assertStringStartsWith( 'INFO:', $obj->getConsoleLogs()[1] );
+		$this->assertStringStartsWith( 'WARN:', $obj->getConsoleLogs()[2] );
+		$this->assertStringStartsWith( 'ERROR:', $obj->getConsoleLogs()[3] );
+		$this->assertStringStartsWith( 'LOG:', $obj->getConsoleLogs()[4] );
 	}
 
 	/**
@@ -371,7 +373,7 @@ class DOMInfoProcessTest extends TestCase
 	 */
 	public function testScriptErrors()
 	{
-		$process = new DOMInfoProcess( self::$server."/errors.html" );
+		$process = new PageInfoProcess( self::$server . "/errors.html" );
 
 		// Enable debugging
 		$process->setEnv([
@@ -383,7 +385,7 @@ class DOMInfoProcessTest extends TestCase
 		// Enqueue the job
 		$manager
 			->enqueue( $process )
-			->then( function ( DOMInfoProcess $successfulProcess ) use ( &$obj )
+			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj )
 			{
 				$out = $successfulProcess->getErrorOutput();
 				$obj = $successfulProcess->getDomInfoObj();
@@ -405,10 +407,10 @@ class DOMInfoProcessTest extends TestCase
 		$procFailed && $this->fail( "Process should not have failed" );
 		$queueFailed && $this->fail( "Queue should not have failed" );
 
-		/** @var DOMInfo $obj */
-		$this->assertCount( 2, $obj->errors );
-		$this->assertContains( 'FunctionNotFound', $obj->errors[0] );
-		$this->assertContains( 'MethodNotFound', $obj->errors[1] );
+		/** @var RenderedHTTPPageInfo $obj */
+		$this->assertCount( 2, $obj->getErrors() );
+		$this->assertContains( 'FunctionNotFound', $obj->getErrors()[0] );
+		$this->assertContains( 'MethodNotFound', $obj->getErrors()[1] );
 	}
 
 	/**
@@ -416,7 +418,7 @@ class DOMInfoProcessTest extends TestCase
 	 */
 	public function testMetaRedirect()
 	{
-		$process = new DOMInfoProcess( self::$server."/meta-redirect-1.html" );
+		$process = new PageInfoProcess( self::$server . "/meta-redirect-1.html" );
 
 		// Enable debugging
 		$process->setEnv([
@@ -428,7 +430,7 @@ class DOMInfoProcessTest extends TestCase
 		// Enqueue the job
 		$manager
 			->enqueue( $process )
-			->then( function ( DOMInfoProcess $successfulProcess ) use ( &$obj )
+			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj )
 			{
 				$out = $successfulProcess->getErrorOutput();
 				$obj = $successfulProcess->getDomInfoObj();
@@ -450,12 +452,12 @@ class DOMInfoProcessTest extends TestCase
 		$procFailed && $this->fail( "Process should not have failed" );
 		$queueFailed && $this->fail( "Queue should not have failed" );
 
-		/** @var DOMInfo $obj */
-		$this->assertCount( 1, $obj->redirectChain );
-		$this->assertEquals( 200, $obj->lastResponse->status );
-		$this->assertCount( 0, $obj->failed );
-		$this->assertCount( 2, $obj->requests );
-		$this->assertNotEquals( $obj->requestUrl, $obj->lastResponse->url );
+		/** @var RenderedHTTPPageInfo $obj */
+		$this->assertCount( 1, $obj->getRedirectChain() );
+		$this->assertEquals( 200, $obj->getLastResponse()->getStatus() );
+		$this->assertCount( 0, $obj->getFailed() );
+		$this->assertCount( 2, $obj->getRequests() );
+		$this->assertNotEquals( $obj->getRequestUrl(), $obj->getLastResponse()->getUrl() );
 	}
 
 	/**
@@ -463,7 +465,7 @@ class DOMInfoProcessTest extends TestCase
 	 */
 	public function testJSRedirect()
 	{
-		$process = new DOMInfoProcess( self::$server."/javascript-redirect-1.html" );
+		$process = new PageInfoProcess( self::$server . "/javascript-redirect-1.html" );
 
 		// Enable debugging
 		$process->setEnv([
@@ -475,7 +477,7 @@ class DOMInfoProcessTest extends TestCase
 		// Enqueue the job
 		$manager
 			->enqueue( $process )
-			->then( function ( DOMInfoProcess $successfulProcess ) use ( &$obj )
+			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj )
 			{
 				$out = $successfulProcess->getErrorOutput();
 				$obj = $successfulProcess->getDomInfoObj();
@@ -497,12 +499,12 @@ class DOMInfoProcessTest extends TestCase
 		$procFailed && $this->fail( "Process should not have failed" );
 		$queueFailed && $this->fail( "Queue should not have failed" );
 
-		/** @var DOMInfo $obj */
-		$this->assertCount( 1, $obj->redirectChain );
-		$this->assertEquals( 200, $obj->lastResponse->status );
-		$this->assertCount( 0, $obj->failed );
-		$this->assertCount( 2, $obj->requests );
-		$this->assertNotEquals( $obj->requestUrl, $obj->lastResponse->url );
+		/** @var RenderedHTTPPageInfo $obj */
+		$this->assertCount( 1, $obj->getRedirectChain() );
+		$this->assertEquals( 200, $obj->getLastResponse()->getStatus() );
+		$this->assertCount( 0, $obj->getFailed() );
+		$this->assertCount( 2, $obj->getRequests() );
+		$this->assertNotEquals( $obj->getRequestUrl(), $obj->getLastResponse()->getUrl() );
 	}
 
 	/**
@@ -510,7 +512,7 @@ class DOMInfoProcessTest extends TestCase
 	 */
 	public function testMixedRedirectChain()
 	{
-		$process = new DOMInfoProcess( self::$server."/302-2/" );
+		$process = new PageInfoProcess( self::$server . "/302-2/" );
 
 		// Enable debugging
 		$process->setEnv([
@@ -522,7 +524,7 @@ class DOMInfoProcessTest extends TestCase
 		// Enqueue the job
 		$manager
 			->enqueue( $process )
-			->then( function ( DOMInfoProcess $successfulProcess ) use ( &$obj )
+			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj )
 			{
 				$out = $successfulProcess->getErrorOutput();
 				$obj = $successfulProcess->getDomInfoObj();
@@ -544,10 +546,10 @@ class DOMInfoProcessTest extends TestCase
 		$procFailed && $this->fail( "Process should not have failed" );
 		$queueFailed && $this->fail( "Queue should not have failed" );
 
-		/** @var DOMInfo $obj */
-		$this->assertCount( 5, $obj->redirectChain );
-		$this->assertEquals( 200, $obj->lastResponse->status );
-		$this->assertCount( 0, $obj->failed );
-		$this->assertCount( 2, $obj->requests );
+		/** @var RenderedHTTPPageInfo $obj */
+		$this->assertCount( 5, $obj->getRedirectChain() );
+		$this->assertEquals( 200, $obj->getLastResponse()->getStatus() );
+		$this->assertCount( 0, $obj->getFailed() );
+		$this->assertCount( 2, $obj->getRequests() );
 	}
 }
