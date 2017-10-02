@@ -14,24 +14,23 @@ const process = require('process');
 const winston = require('winston');
 const winstonStderr = require('winston-stderr');
 
-const level = process.env.LOG_LEVEL || 'warning';
+const loggerFactory = (label) => {
+    return new winston.Logger({
+        transports: [
+            new winstonStderr({
+                level: process.env.LOG_LEVEL || 'debug',
+                timestamp: function () {
+                    // e.g. 21:58:26.056
+                    // REF: https://stackoverflow.com/a/28149561/1938889
+                    let tzoffset = (new Date()).getTimezoneOffset() * 60000; // Offset in milliseconds
+                    let localISOTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, -1);
+                    return localISOTime.substr(11, 12);
+                },
+                label: label || process.pid
+            })
+        ],
+        exitOnError: false
+    });
+};
 
-const logger = new winston.Logger({
-    transports: [
-        new winstonStderr({
-            level: level,
-            timestamp: function () {
-                // e.g. 21:58:26.056
-                // REF: https://stackoverflow.com/a/28149561/1938889
-                let tzoffset = (new Date()).getTimezoneOffset() * 60000; // Offset in milliseconds
-                let localISOTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0,-1);
-                return localISOTime.substr(11, 12);
-            },
-            label: process.pid
-        })
-    ]
-});
-
-logger.exitOnError = false;
-
-module.exports = logger;
+module.exports = loggerFactory;

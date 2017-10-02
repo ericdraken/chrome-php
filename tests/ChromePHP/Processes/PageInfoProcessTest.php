@@ -154,11 +154,23 @@ class PageInfoProcessTest extends TestCase
 	}
 
 	/**
-	 * Test that we get an info object back
+	 * Test that user code can be run on a page
 	 */
-	public function testgetRenderedHtml()
+	public function testRunVMCode()
 	{
-		$process = new PageInfoProcess( self::$server . "/render.html" );
+		// Test user script
+		$code = <<<'JS'
+			(async () => { await page.setContent('vmcode successful'); })();
+JS;
+
+		$process = new PageInfoProcess( self::$server . "/index.html", [
+				'--vmcode='.$code
+			] );
+
+		// Enable debugging
+		$process->setEnv([
+			'LOG_LEVEL' => 'debug'
+		]);
 
 		$manager = new ChromeProcessManager( self::$defaultPort, 1 );
 
@@ -168,7 +180,159 @@ class PageInfoProcessTest extends TestCase
 			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj )
 			{
 				$obj = $successfulProcess->getDomInfoObj();
+			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out )
+			{
+				$out = $failedProcess->getErrorOutput();
+				$procFailed = true;
+			} );
 
+		$manager->then( null, function () use ( &$queueFailed )
+		{
+			$queueFailed = true;
+		} );
+
+		// Start processing
+		$manager->run();
+
+		$procFailed && $this->fail( "Process should not have failed" );
+		$queueFailed && $this->fail( "Queue should not have failed" );
+
+		/** @var RenderedHTTPPageInfo $obj */
+		$this->assertNotContains( 'vmcode successful', $obj->getRawHtml() );
+	}
+
+	/**
+	 * Test that user code can be run on a page
+	 */
+	public function testRunNavigatingVMCode()
+	{
+		$server = self::$server;
+
+		// Test user script
+		$code = <<<JS
+			(async () => { 
+			    await page.goto('$server/render.html', {
+        			waitUntil: 'networkidle',
+        			networkIdleTimeout: 100
+			    }).then(() => {
+			        "use strict";
+			    	console.debug( 'Finished VM code' );
+			    });
+			})();
+JS;
+
+		$process = new PageInfoProcess( "$server/index.html", [
+			'--vmcode='.$code
+		] );
+
+		// Enable debugging
+		$process->setEnv([
+			'LOG_LEVEL' => 'debug'
+		]);
+
+		$manager = new ChromeProcessManager( self::$defaultPort, 1 );
+
+		// Enqueue the job
+		$manager
+			->enqueue( $process )
+			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj, &$out )
+			{
+				$out = $successfulProcess->getErrorOutput();
+				$obj = $successfulProcess->getDomInfoObj();
+			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out )
+			{
+				$out = $failedProcess->getErrorOutput();
+				$procFailed = true;
+			} );
+
+		$manager->then( null, function () use ( &$queueFailed )
+		{
+			$queueFailed = true;
+		} );
+
+		// Start processing
+		$manager->run();
+
+		$procFailed && $this->fail( "Process should not have failed" );
+		$queueFailed && $this->fail( "Queue should not have failed" );
+
+		/** @var RenderedHTTPPageInfo $obj */
+		$this->assertContains( 'rendered', $obj->getRenderedHtml() );
+		$this->assertContains( 'Finished VM code', $out );
+
+		$this->assertCount( 1, $obj->getRedirectChain() );
+		$this->assertCount( 2, $obj->getRequests() );
+	}
+
+	/**
+	 * Test that `page.close()` cannot be run
+	 */
+	public function testRunBadVMCode()
+	{
+		// Test user script that should throw an exception
+		$code = <<<'JS'
+			(async () => { await page.close(); })();
+JS;
+
+		$process = new PageInfoProcess( self::$server . "/index.html", [
+			'--vmcode='.$code
+		] );
+
+		// Need to check stderr output on bad user code
+		$process->setEnv([
+			'LOG_LEVEL' => 'error'
+		]);
+
+		$manager = new ChromeProcessManager( self::$defaultPort, 1 );
+
+		// Enqueue the job
+		$manager
+			->enqueue( $process )
+			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj, &$out )
+			{
+				$out = $successfulProcess->getErrorOutput();
+				$obj = $successfulProcess->getDomInfoObj();
+			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out )
+			{
+				$out = $failedProcess->getErrorOutput();
+				$procFailed = true;
+			} );
+
+		$manager->then( null, function () use ( &$queueFailed )
+		{
+			$queueFailed = true;
+		} );
+
+		// Start processing
+		$manager->run();
+
+		$procFailed && $this->fail( "Process should not have failed" );
+		$queueFailed && $this->fail( "Queue should not have failed" );
+
+		/** @var RenderedHTTPPageInfo $obj */
+		$this->assertContains( 'close is disabled', $out );
+	}
+
+	/**
+	 * Test that we get an info object back
+	 */
+	public function testGetRenderedHtml()
+	{
+		$process = new PageInfoProcess( self::$server . "/render.html" );
+
+		// Enable debugging
+		$process->setEnv([
+			'LOG_LEVEL' => 'debug'
+		]);
+
+		$manager = new ChromeProcessManager( self::$defaultPort, 1 );
+
+		// Enqueue the job
+		$manager
+			->enqueue( $process )
+			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj )
+			{
+				$obj = $successfulProcess->getDomInfoObj();
 			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out )
 			{
 				$out = $failedProcess->getErrorOutput();

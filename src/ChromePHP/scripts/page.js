@@ -20,15 +20,17 @@
 
 const argv = require('minimist')(process.argv.slice(2));
 const puppeteer = require('puppeteer');
-const logger = require('./logger');
+const loggerFactory = require('./logger');
 const fs = require('fs');
 const purl = require('url');
 
+const logger = loggerFactory();
 const wsep = chrome.wsep;
 const temp = chrome.temp;
 const url = argv.url || false;
 const networkIdleTimeout = argv.idletime || 500; // 0.5s
 const timeout = argv.timeout || 10000; // 10s
+const vmcode = argv.vmcode || false;
 
 // Sanity
 if (!url) {
@@ -220,6 +222,51 @@ let mainRequests = [];
         results.lastResponse = obj;
         results.rawHtml = rawHTML.get(response.url) || '';
         logger.debug('Last response in main request chain: %s', response.url);
+        return response;
+
+    }).then(async (response) => {
+
+        // If vm code is present, then execute it in a sandbox,
+        // if not, then skip over this section
+        if(vmcode===false) {
+            logger.debug('No VM code supplied');
+            return response;
+        }
+
+        try {
+            let sandboxPage = new Proxy(page, {
+                get: function(target, name, receiver) {
+                    switch(name) {
+                        case 'close':
+                        case 'exposeFunction':
+                        case 'setRequestInterceptionEnabled':
+                            throw Error(`${name} is disabled in user scripts`);
+                    }
+                    return Reflect.get(target, name, receiver);
+                }
+            });
+
+            // Run any user scripts to perform any additional page actions,
+            // but only allow access to proxied `page` and `console` to prevent user
+            // scripts from closing the page or browser, and from interfering with
+            // the final operations of this process, like sending the JSON data to PHP
+            let vm = require('vm'),
+                sandbox = {
+                    page: sandboxPage,
+                    console: loggerFactory('vmcode'),
+                    require: require
+                };
+
+            logger.debug('Running VM code in sandbox', vmcode);
+            await vm.runInNewContext(vmcode, sandbox, {
+                filename: 'vmcode',
+                displayErrors: true
+            });
+
+        } catch (err) {
+            results.errors.push('VM script error: ' + err.message);
+        }
+        return response;
 
     }).catch((err) => {
         // REF: https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagegotourl-options
