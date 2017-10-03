@@ -170,6 +170,51 @@ class PageInfoProcessTest extends TestCase
 	}
 
 	/**
+	 * Test iPhone 6 emulation was successfully set in the browser page
+	 * @depends testConstructorSetEmulation
+	 * @depends testInfoObjectReturned
+	 */
+	public function testIPhoneEmulation()
+	{
+		$emu = new IPhone6Emulation();
+
+		$process = new PageInfoProcess( self::$server . "/browserinfo.html", [], $emu );
+
+		$manager = new ChromeProcessManager( self::$defaultPort, 1 );
+
+		// Enqueue the job
+		$manager
+			->enqueue( $process )
+			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj ) {
+				$obj = $successfulProcess->getDomInfoObj();
+			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out ) {
+				$out = $failedProcess->getErrorOutput();
+				$procFailed = true;
+			} );
+
+		$manager->then( null, function () use ( &$queueFailed )	{
+			$queueFailed = true;
+		} );
+
+		// Start processing
+		$manager->run();
+
+		$procFailed && $this->fail( "Process should not have failed" );
+		$queueFailed && $this->fail( "Queue should not have failed" );
+
+		// Check the console logs in order
+		$logs = $obj->getConsoleLogs();
+		$this->assertStringEndsWith( $emu->getUserAgent(), $logs[0] );
+		$this->assertStringEndsWith( 'iOS', $logs[1] );
+		$this->assertStringEndsWith( 'true', $logs[2] );    // mobile
+		$this->assertStringEndsWith( 'true', $logs[3] );    // iphone
+		$this->assertStringEndsWith( "{$emu->getWidth()}x{$emu->getHeight()}", $logs[4] );
+		$this->assertStringEndsWith( 'true', $logs[5] );    // local storage
+		$this->assertStringEndsWith( 'true', $logs[6] );    // session
+		$this->assertStringEndsWith( 'true', $logs[7] );    // cookies
+	}
+
+	/**
 	 * Test that user code can be run on a page
 	 */
 	public function testRunVMCode()

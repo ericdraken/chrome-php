@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Browser Info</title>
+</head>
+<body>
+<script src="client.min.js"></script>
+<script>
+    let client = new ClientJS();
+    console.log( client.getUserAgent() );
+    console.log( client.getOS() );
+    console.log( client.isMobile() );
+    console.log( client.isIphone() );
+    console.log( client.getCurrentResolution() );
+    console.log( client.isLocalStorage() );
+    console.log( client.isSessionStorage() );
+    console.log( client.isCookie() );
+</script>
+</body>
+</html>

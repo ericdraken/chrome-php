@@ -12,6 +12,9 @@ use PHPUnit\Framework\TestCase;
 
 class EmulationTest extends TestCase
 {
+	/**
+	 * Test the Emulation object is set correctly
+	 */
 	public function testEmulation()
 	{
 		$e = new Emulation(100, 200, 2.5, 'agent', true, true, true );
@@ -32,5 +35,22 @@ class EmulationTest extends TestCase
 		$this->assertTrue( $obj->viewport->hasTouch );
 		$this->assertTrue( $obj->viewport->isLandscape );
 		$this->assertEquals( 'agent', $obj->userAgent );
+	}
+
+	/**
+	 * Test an array of emulations
+	 * @depends testEmulation
+	 */
+	public function testEmulationsArray()
+	{
+		$e = new Emulation(100, 200, 2.5, 'agent', true, true, true );
+		$f = new Emulation(300, 400, 1.5, 'agent2', true, true, true );
+
+		$json = "[ $e, $f ]";
+
+		$obj = json_decode( $json );
+
+		$this->assertEquals( $e, json_encode( $obj[0] ) );
+		$this->assertEquals( $f, json_encode( $obj[1] ) );
 	}
 }
