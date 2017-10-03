@@ -265,13 +265,27 @@ let mainRequests = [];
             });
 
             // Run any user scripts to perform any additional page actions,
-            // but only allow access to proxied `page` and `console` to prevent user
-            // scripts from closing the page or browser, and from interfering with
-            // the final operations of this process, like sending the JSON data to PHP
+            // but only allow access to proxied objects like `page` and `console`
+            // to prevent user scripts from closing the page or browser, and from
+            // interfering with the final operations of this process, like sending
+            // the JSON data to PHP. The logger below will also alias 'log' to 'info'.
+            const vmlogger = loggerFactory('vmcode');
+            vmlogger.level = logger.level;
+            const sandboxLogger = new Proxy(vmlogger, {
+                get: function(target, name, receiver) {
+                    switch(name) {
+                        case 'log':
+                            return Reflect.get(target, 'info', receiver);
+                    }
+                    return Reflect.get(target, name, receiver);
+                }
+            });
+
             let vm = require('vm'),
                 sandbox = {
                     page: sandboxPage,
-                    console: loggerFactory('vmcode'),
+                    console: sandboxLogger,
+                    logger: sandboxLogger,
                     require: require,
                     argv: argv
                 };
