@@ -6,7 +6,7 @@
  * Copyright (c) 2017
  */
 
-namespace Draken\ChromePHP\Emulations\Common;
+namespace Draken\ChromePHP\Emulations\Devices;
 
 use Draken\ChromePHP\Emulations\Emulation;
 

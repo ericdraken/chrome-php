@@ -10,7 +10,7 @@ namespace Draken\ChromePHP\Processes;
 
 use Draken\ChromePHP\Core\LoggableBase;
 use Draken\ChromePHP\Core\NodeProcess;
-use Draken\ChromePHP\Emulations\Common\DefaultDesktop;
+use Draken\ChromePHP\Emulations\Devices\DefaultDesktop;
 use Draken\ChromePHP\Emulations\Emulation;
 use Draken\ChromePHP\Exceptions\HttpResponseException;
 use Draken\ChromePHP\Exceptions\InvalidArgumentException;

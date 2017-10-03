@@ -11,7 +11,7 @@ namespace Draken\ChromePHP\Processes;
 use Draken\ChromePHP\Commands\LinuxCommands;
 use Draken\ChromePHP\Core\ChromeProcessManager;
 use Draken\ChromePHP\Core\NodeProcess;
-use Draken\ChromePHP\Emulations\Common\IPhone6Emulation;
+use Draken\ChromePHP\Emulations\Devices\IPhone6Emulation;
 use Draken\ChromePHP\Exceptions\InvalidArgumentException;
 use Draken\ChromePHP\Processes\HTTP\RenderedHTTPPageInfo;
 use PHPUnit\Framework\TestCase;
