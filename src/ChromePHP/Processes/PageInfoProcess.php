@@ -22,7 +22,7 @@ use Draken\ChromePHP\Utils\Paths;
 class PageInfoProcess extends NodeProcess
 {
 	/** @var RenderedHTTPPageInfo */
-	protected $domInfoObj;
+	protected $renderedPageInfoObj;
 
 	/** @var Emulation */
 	protected $emulation;
@@ -59,7 +59,7 @@ class PageInfoProcess extends NodeProcess
 		]), $timeout, false, false);
 
 		// Set an empty object as the result
-		$this->domInfoObj = new RenderedHTTPPageInfo();
+		$this->renderedPageInfoObj = new RenderedHTTPPageInfo();
 
 		// Setup a new wait function
 		$this->setupPromiseProxyResolver();
@@ -68,9 +68,9 @@ class PageInfoProcess extends NodeProcess
 	/**
 	 * @return RenderedHTTPPageInfo
 	 */
-	public function getDomInfoObj(): RenderedHTTPPageInfo
+	public function getRenderedPageInfoObj(): RenderedHTTPPageInfo
 	{
-		return $this->domInfoObj;
+		return $this->renderedPageInfoObj;
 	}
 
 	/**
@@ -91,10 +91,10 @@ class PageInfoProcess extends NodeProcess
 			{
 				try
 				{
-					$this->domInfoObj = $this->processNodeResults();
+					$this->renderedPageInfoObj = $this->processNodeResults();
 
 					// Was the initial request successful?
-					if ( $this->domInfoObj->isOk() ) {
+					if ( $this->renderedPageInfoObj->isOk() ) {
 						$this->promise->resolve( $this );
 					} else {
 						// The response was not ok

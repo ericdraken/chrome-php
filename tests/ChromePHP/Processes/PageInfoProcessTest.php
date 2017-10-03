@@ -147,7 +147,7 @@ class PageInfoProcessTest extends TestCase
 			->enqueue( $process )
 			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj )
 			{
-				$obj = $successfulProcess->getDomInfoObj();
+				$obj = $successfulProcess->getRenderedPageInfoObj();
 
 			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out )
 			{
@@ -186,7 +186,7 @@ class PageInfoProcessTest extends TestCase
 		$manager
 			->enqueue( $process )
 			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj ) {
-				$obj = $successfulProcess->getDomInfoObj();
+				$obj = $successfulProcess->getRenderedPageInfoObj();
 			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out ) {
 				$out = $failedProcess->getErrorOutput();
 				$procFailed = true;
@@ -240,7 +240,7 @@ JS;
 			->enqueue( $process )
 			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj )
 			{
-				$obj = $successfulProcess->getDomInfoObj();
+				$obj = $successfulProcess->getRenderedPageInfoObj();
 			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out )
 			{
 				$out = $failedProcess->getErrorOutput();
@@ -299,7 +299,7 @@ JS;
 			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj, &$out )
 			{
 				$out = $successfulProcess->getErrorOutput();
-				$obj = $successfulProcess->getDomInfoObj();
+				$obj = $successfulProcess->getRenderedPageInfoObj();
 			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out )
 			{
 				$out = $failedProcess->getErrorOutput();
@@ -352,7 +352,7 @@ JS;
 			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj, &$out )
 			{
 				$out = $successfulProcess->getErrorOutput();
-				$obj = $successfulProcess->getDomInfoObj();
+				$obj = $successfulProcess->getRenderedPageInfoObj();
 			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out )
 			{
 				$out = $failedProcess->getErrorOutput();
@@ -393,7 +393,7 @@ JS;
 			->enqueue( $process )
 			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj )
 			{
-				$obj = $successfulProcess->getDomInfoObj();
+				$obj = $successfulProcess->getRenderedPageInfoObj();
 			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out )
 			{
 				$out = $failedProcess->getErrorOutput();
@@ -438,7 +438,7 @@ JS;
 				$procSucceeded = true;
 			}, function ( PageInfoProcess $failedProcess ) use ( &$obj, &$procFailed, &$out )
 			{
-				$obj = $failedProcess->getDomInfoObj();
+				$obj = $failedProcess->getRenderedPageInfoObj();
 				$out = $failedProcess->getErrorOutput();
 				$procFailed = true;
 			} );
@@ -483,7 +483,7 @@ JS;
 				$procSucceeded = true;
 			}, function ( PageInfoProcess $failedProcess ) use ( &$obj, &$procFailed, &$out )
 			{
-				$obj = $failedProcess->getDomInfoObj();
+				$obj = $failedProcess->getRenderedPageInfoObj();
 				$out = $failedProcess->getErrorOutput();
 				$procFailed = true;
 			} );
@@ -522,7 +522,7 @@ JS;
 			->enqueue( $process )
 			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj )
 			{
-				$obj = $successfulProcess->getDomInfoObj();
+				$obj = $successfulProcess->getRenderedPageInfoObj();
 
 			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out )
 			{
@@ -565,7 +565,7 @@ JS;
 			->enqueue( $process )
 			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj )
 			{
-				$obj = $successfulProcess->getDomInfoObj();
+				$obj = $successfulProcess->getRenderedPageInfoObj();
 
 			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out )
 			{
@@ -613,7 +613,7 @@ JS;
 			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj )
 			{
 				$out = $successfulProcess->getErrorOutput();
-				$obj = $successfulProcess->getDomInfoObj();
+				$obj = $successfulProcess->getRenderedPageInfoObj();
 
 			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out )
 			{
@@ -658,7 +658,7 @@ JS;
 			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj )
 			{
 				$out = $successfulProcess->getErrorOutput();
-				$obj = $successfulProcess->getDomInfoObj();
+				$obj = $successfulProcess->getRenderedPageInfoObj();
 
 			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out )
 			{
@@ -705,7 +705,7 @@ JS;
 			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj )
 			{
 				$out = $successfulProcess->getErrorOutput();
-				$obj = $successfulProcess->getDomInfoObj();
+				$obj = $successfulProcess->getRenderedPageInfoObj();
 
 			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out )
 			{
@@ -752,7 +752,7 @@ JS;
 			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj )
 			{
 				$out = $successfulProcess->getErrorOutput();
-				$obj = $successfulProcess->getDomInfoObj();
+				$obj = $successfulProcess->getRenderedPageInfoObj();
 
 			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out )
 			{
