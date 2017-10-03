@@ -477,7 +477,7 @@ class ChromeProcessManagerTest extends TestCase
 
 		$this->assertNull( $fulfilled );
 		$this->assertTrue( $rejected );
-		$this->assertEquals( $ticksExpected, $ticks);
+		$this->assertGreaterThanOrEqual( $ticksExpected, $ticks);
 		!!$exception && $this->fail( $exception->getMessage() );
 	}
 
@@ -544,7 +544,7 @@ class ChromeProcessManagerTest extends TestCase
 
 		$this->assertNull( $fulfilled );
 		$this->assertTrue( $rejected );
-		$this->assertEquals( $ticksExpected, $ticks);
+		$this->assertGreaterThanOrEqual( $ticksExpected, $ticks );
 		!!$exception && $this->fail( $exception->getMessage() );
 	}
 }

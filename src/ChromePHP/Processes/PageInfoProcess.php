@@ -10,6 +10,8 @@ namespace Draken\ChromePHP\Processes;
 
 use Draken\ChromePHP\Core\LoggableBase;
 use Draken\ChromePHP\Core\NodeProcess;
+use Draken\ChromePHP\Emulations\Common\DefaultDesktop;
+use Draken\ChromePHP\Emulations\Emulation;
 use Draken\ChromePHP\Exceptions\HttpResponseException;
 use Draken\ChromePHP\Exceptions\InvalidArgumentException;
 use Draken\ChromePHP\Exceptions\RuntimeException;
@@ -22,28 +24,38 @@ class PageInfoProcess extends NodeProcess
 	/** @var RenderedHTTPPageInfo */
 	private $domInfoObj;
 
+	/** @var Emulation */
+	private $emulation;
+
 	/**
 	 * PageInfoProcess constructor.
 	 *
 	 * @param string $url
 	 * @param array $args
+	 * @param Emulation|null $emulation
 	 * @param int $timeout
 	 */
-	public function __construct( string $url, array $args = [], $timeout = 10 )
+	public function __construct( string $url, array $args = [], Emulation $emulation = null, $timeout = 10 )
 	{
 		if ( empty( $url ) ) {
 			throw new InvalidArgumentException( "Supplied URL is empty" );
 		}
 
-		// Filter out any URL params supplied by the user
+		// Register the device emulation or a default desktop emulation
+		$this->emulation = is_null( $emulation ) ? new DefaultDesktop() : $emulation;
+
+		// Filter out any reserved params supplied by the user
 		$args = array_filter( $args, function ( $arg ) {
-			return stripos( $arg, '--url=' ) !== 0;
+			return
+				stripos( $arg, '--url=' ) !== 0 &&
+				stripos( $arg, '--emulation=' ) !== 0;
 		} );
 
 		// Merge the args array with the mandatory argument,
 		// but always use the --url param supplied below
 		parent::__construct(Paths::getNodeScriptsPath() . '/page.js', array_merge($args, [
-			'--url='.$url
+			'--url='.$url,
+			'--emulation='.$this->emulation
 		]), $timeout, false, false);
 
 		// Set an empty object as the result

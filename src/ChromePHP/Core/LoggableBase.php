@@ -34,7 +34,7 @@ abstract class LoggableBase
 	 * @return LoggerInterface
 	 * @throws \RuntimeException
 	 */
-	public static function logger()
+	public static function logger(): LoggerInterface
 	{
 		if ( ! isset( self::$logger ) )
 		{

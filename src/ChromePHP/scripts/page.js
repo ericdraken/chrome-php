@@ -28,11 +28,12 @@ const logger = loggerFactory();
 const wsep = chrome.wsep;
 const temp = chrome.temp;
 const url = argv.url || false;
+const emulation = argv.emulation || false;
 const networkIdleTimeout = argv.idletime || 500; // 0.5s
 const timeout = argv.timeout || 10000; // 10s
 const vmcode = argv.vmcode || false;
 
-// Sanity
+// Check the URL
 if (!url) {
     logger.error("URL not present");
     process.exit(1);
@@ -84,6 +85,23 @@ let mainRequests = [];
     // Open a new tab
     page = await browser.newPage();
 
+    // Set the emulation
+    if(emulation) {
+        // Decode emulation JSON. If parsing fails, an exception will be thrown
+        let emulationObj = JSON.parse(emulation);
+        if (emulationObj.hasOwnProperty('userAgent') && emulationObj.hasOwnProperty('viewport'))
+        {
+            logger.debug('Setting viewport');
+            await page.setViewport(emulationObj['viewport']);
+            if(emulationObj['userAgent'].length) {
+                logger.debug('Setting userAgent to %s', emulationObj['userAgent']);
+                await page.setUserAgent(emulationObj['userAgent']);
+            }
+        } else {
+            logger.warn('Emulation missing required properties');
+        }
+    }
+
     // Logging
     logger.debug('Intercepting console logs');
     const levels = ['debug', 'info', 'warn', 'error', 'log'];
@@ -131,7 +149,6 @@ let mainRequests = [];
         // Keep track of request objects
         requests.set(request.url, request);
     });
-
 
     // Save raw HTML response of all the requests
     // because we don't know which one is the last
@@ -264,6 +281,8 @@ let mainRequests = [];
             });
 
         } catch (err) {
+            // Note the error in the logger, and the returned results object
+            logger.error('VM script error: ', err.message);
             results.errors.push('VM script error: ' + err.message);
         }
         return response;

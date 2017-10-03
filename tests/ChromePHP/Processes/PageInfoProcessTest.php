@@ -11,6 +11,7 @@ namespace Draken\ChromePHP\Processes;
 use Draken\ChromePHP\Commands\LinuxCommands;
 use Draken\ChromePHP\Core\ChromeProcessManager;
 use Draken\ChromePHP\Core\NodeProcess;
+use Draken\ChromePHP\Emulations\Common\IPhone6Emulation;
 use Draken\ChromePHP\Exceptions\InvalidArgumentException;
 use Draken\ChromePHP\Processes\HTTP\RenderedHTTPPageInfo;
 use PHPUnit\Framework\TestCase;
@@ -106,15 +107,30 @@ class PageInfoProcessTest extends TestCase
 	public function testConstructorOverwriteUrl()
 	{
 		$url = 'http://example.com';
+		$url2 = 'http://yahoo.com';
 
-		$process = new PageInfoProcess( $url, [
-			'--url=http://yahoo.com'
-		] );
+		$process = new PageInfoProcess( $url, [ "--url=$url2" ] );
 
 		$args = $this->getObjectAttribute( $process, 'userScriptArgs' );
 
-		$this->assertCount( 1, $args );
+		$this->assertCount( 2, $args );
 		$this->assertContains( "--url=$url", $args );
+		$this->assertNotContains( "--url=$url2", $args );
+	}
+
+	/**
+	 * Tes that the emulation is properly passed to the user args array
+	 */
+	public function testConstructorSetEmulation()
+	{
+		$url = 'http://example.com';
+		$emu = new IPhone6Emulation();
+
+		$process = new PageInfoProcess( $url, [], $emu );
+
+		$args = $this->getObjectAttribute( $process, 'userScriptArgs' );
+
+		$this->assertContains( "--emulation={$emu->__toString()}", $args );
 	}
 
 	/**
