@@ -22,10 +22,10 @@ use Draken\ChromePHP\Utils\Paths;
 class PageInfoProcess extends NodeProcess
 {
 	/** @var RenderedHTTPPageInfo */
-	private $domInfoObj;
+	protected $domInfoObj;
 
 	/** @var Emulation */
-	private $emulation;
+	protected $emulation;
 
 	/**
 	 * PageInfoProcess constructor.
@@ -51,8 +51,8 @@ class PageInfoProcess extends NodeProcess
 				stripos( $arg, '--emulation=' ) !== 0;
 		} );
 
-		// Merge the args array with the mandatory argument,
-		// but always use the --url param supplied below
+		// Merge the args array with the mandatory arguments,
+		// but always use the params supplied below
 		parent::__construct(Paths::getNodeScriptsPath() . '/page.js', array_merge($args, [
 			'--url='.$url,
 			'--emulation='.$this->emulation

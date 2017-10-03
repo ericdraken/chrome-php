@@ -254,6 +254,7 @@ let mainRequests = [];
             let sandboxPage = new Proxy(page, {
                 get: function(target, name, receiver) {
                     switch(name) {
+                        case 'reload':
                         case 'close':
                         case 'exposeFunction':
                         case 'setRequestInterceptionEnabled':
@@ -271,7 +272,8 @@ let mainRequests = [];
                 sandbox = {
                     page: sandboxPage,
                     console: loggerFactory('vmcode'),
-                    require: require
+                    require: require,
+                    argv: argv
                 };
 
             logger.debug('Running VM code in sandbox', vmcode);
