@@ -50,6 +50,7 @@ let results = {
     "rawHtml" : "",
     "renderedHtml" : "",
     "consoleLogs" : [],
+    "vmcodeResults" : [],
     "requests" : [],
     "failed" : [],
     "errors" : [],
@@ -287,7 +288,8 @@ let mainRequests = [];
                     console: sandboxLogger,
                     logger: sandboxLogger,
                     require: require,
-                    argv: argv
+                    argv: argv,
+                    vmcodeResults: results.vmcodeResults
                 };
 
             logger.debug('Running VM code in sandbox', vmcode);

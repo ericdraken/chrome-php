@@ -35,6 +35,9 @@ class RenderedHTTPPageInfo
 	protected $consoleLogs = [];
 
 	/** @var array */
+	protected $vmcodeResults = [];
+
+	/** @var array */
 	protected $requests = [];
 
 	/** @var HTTPResponseInfo[] */
@@ -108,6 +111,14 @@ class RenderedHTTPPageInfo
 	public function getConsoleLogs(): array
 	{
 		return $this->consoleLogs;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getVmcodeResults(): array
+	{
+		return $this->vmcodeResults;
 	}
 
 	/**
