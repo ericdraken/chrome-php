@@ -77,11 +77,13 @@ class PageInfoProcess extends NodeProcess
 	 * Create a new PromiseProxy using a
 	 * modified wait function to that of the
 	 * default PromiseProxy
+	 *
+	 * @param callable|null $successCheckCallback
 	 */
-	private function setupPromiseProxyResolver()
+	protected function setupPromiseProxyResolver( callable $successCheckCallback = null )
 	{
 		// Set up the wait function
-		$this->promise = new PromiseProxy( function ()
+		$this->promise = new PromiseProxy( function () use ( &$successCheckCallback )
 		{
 			if ($this->isStarted()) {
 				$this->wait();
@@ -94,7 +96,14 @@ class PageInfoProcess extends NodeProcess
 					$this->renderedPageInfoObj = $this->processNodeResults();
 
 					// Was the initial request successful?
-					if ( $this->renderedPageInfoObj->isOk() ) {
+					if ( $this->renderedPageInfoObj->isOk() )
+					{
+						// Test for another property to determine if really successful.
+						// Throw an exception here to reject the promise
+						if ( is_callable( $successCheckCallback ) ) {
+							call_user_func( $successCheckCallback, $this->renderedPageInfoObj );
+						}
+
 						$this->promise->resolve( $this );
 					} else {
 						// The response was not ok
