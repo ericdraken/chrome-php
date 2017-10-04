@@ -42,19 +42,19 @@ if (!url) {
 logger.info('URL: %s', url);
 
 let results = {
-    "ok" : false,
-    "status" : 0,
-    "requestUrl" : "",
-    "lastResponse" : false,
-    "redirectChain" : [],
-    "rawHtml" : "",
-    "renderedHtml" : "",
-    "consoleLogs" : [],
-    "vmcodeResults" : [],
-    "requests" : [],
-    "failed" : [],
-    "errors" : [],
-    "loadTime": -1
+    ok : false,
+    status : 0,
+    requestUrl : "",
+    lastResponse : false,
+    redirectChain : [],
+    rawHtml : "",
+    renderedHtml : "",
+    consoleLogs : [],
+    vmcodeResults : [],
+    requests : [],
+    failed : [],
+    errors : [],
+    loadTime: -1
 };
 
 let browser;
@@ -287,21 +287,22 @@ let mainRequests = [];
                     page: sandboxPage,
                     console: sandboxLogger,
                     logger: sandboxLogger,
-                    require: require,
                     argv: argv,
+                    temp: temp,
                     vmcodeResults: results.vmcodeResults
                 };
 
-            logger.debug('Running VM code in sandbox', vmcode);
+            logger.debug('Running VM code in sandbox');
             await vm.runInNewContext(vmcode, sandbox, {
                 filename: 'vmcode',
                 displayErrors: true
             });
+            logger.debug('VM code finished');
 
         } catch (err) {
             // Note the error in the logger, and the returned results object
-            logger.error('VM script error: ', err.message);
-            results.errors.push('VM script error: ' + err.message);
+            logger.error('VM script error: ', err.message, err.stack);
+            results.errors.push('VM script error: ' + err.message, err.stack);
         }
         return response;
 

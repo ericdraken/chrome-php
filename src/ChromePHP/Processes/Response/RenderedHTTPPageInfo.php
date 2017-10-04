@@ -34,8 +34,8 @@ class RenderedHTTPPageInfo
 	/** @var array */
 	protected $consoleLogs = [];
 
-	/** @var array */
-	protected $vmcodeResults = [];
+	/** @var mixed */
+	protected $vmcodeResults;
 
 	/** @var array */
 	protected $requests = [];
@@ -114,9 +114,9 @@ class RenderedHTTPPageInfo
 	}
 
 	/**
-	 * @return array
+	 * @return mixed
 	 */
-	public function getVmcodeResults(): array
+	public function getVmcodeResults()
 	{
 		return $this->vmcodeResults;
 	}
@@ -165,6 +165,12 @@ class RenderedHTTPPageInfo
 
 		foreach ( $data as $key => $value )
 		{
+			// Special property to include as is
+			if ( $key === 'vmcodeResults' ) {
+				$this->{$key} = $value;
+				continue;
+			}
+
 			// Ensure lastResponse is an object
 			if ( $key === 'lastResponse' && ! is_object( $value ) ) {
 				$value = new \stdClass();
