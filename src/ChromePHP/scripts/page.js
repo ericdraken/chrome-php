@@ -1,5 +1,5 @@
 /*
- * ChromePHP - dom.js
+ * ChromePHP - page.js
  * Created by: Eric Draken
  * Date: 2017/9/25
  * Copyright (c) 2017

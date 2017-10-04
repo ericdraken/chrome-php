@@ -15,7 +15,7 @@ use Draken\ChromePHP\Emulations\Emulation;
 use Draken\ChromePHP\Exceptions\HttpResponseException;
 use Draken\ChromePHP\Exceptions\InvalidArgumentException;
 use Draken\ChromePHP\Exceptions\RuntimeException;
-use Draken\ChromePHP\Processes\HTTP\RenderedHTTPPageInfo;
+use Draken\ChromePHP\Processes\Response\RenderedHTTPPageInfo;
 use Draken\ChromePHP\Queue\PromiseProxy;
 use Draken\ChromePHP\Utils\Paths;
 

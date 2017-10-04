@@ -6,7 +6,7 @@
  * Copyright (c) 2017
  */
 
-namespace Draken\ChromePHP\Processes\HTTP;
+namespace Draken\ChromePHP\Processes\Response;
 
 class HTTPResponseInfo
 {
