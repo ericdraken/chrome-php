@@ -74,7 +74,7 @@ class ScreenshotProcessTest extends TestCase
 		$e = new Emulation(100, 200, 2.5, 'agent', true, true, true );
 		$f = new Emulation(300, 400, 1.5, 'agent2', true, true, true );
 
-		$process = new ScreenshotProcess( $url, [], [ $e, $f ] );
+		$process = new ScreenshotProcess( $url, [ $e, $f ] );
 
 		$args = $this->getObjectAttribute( $process, 'userScriptArgs' );
 
@@ -91,9 +91,9 @@ class ScreenshotProcessTest extends TestCase
 		$url = self::$server;
 		$e = new Emulation(100, 200, 2.5, 'agent', true, true, true );
 
-		$process = new ScreenshotProcess( $url, [
+		$process = new ScreenshotProcess( $url, [ $e ], [
 			'--emulations=[]'
-		], [ $e ] );
+		] );
 
 		$args = $this->getObjectAttribute( $process, 'userScriptArgs' );
 
@@ -112,7 +112,7 @@ class ScreenshotProcessTest extends TestCase
 		$e = new Emulation(100, 200, 2.5, 'agent', true, true, true );
 		$f = new Emulation(300, 400, 1.5, 'agent2', true, true, true );
 
-		$process = new ScreenshotProcess( $url, [], [ $e, $f ] );
+		$process = new ScreenshotProcess( $url, [ $e, $f ] );
 
 		// Enable debugging
 		$process->setEnv([
@@ -190,7 +190,7 @@ JS;
 		$url = self::$server . '/image.jpg';
 		$e = new Emulation(150, 150, 1, 'UserAgent', false, false, false );
 
-		$process = new ScreenshotProcess( $url, [], [$e] );
+		$process = new ScreenshotProcess( $url, [$e] );
 
 		// Enable debugging
 		$process->setEnv([
@@ -232,7 +232,65 @@ JS;
 		// Check the object
 		$vmRes = $obj->getVmcodeResults()[0];
 		$this->assertInstanceOf( \stdClass::class, $vmRes );
-		$this->assertStringEndsWith( '150x150.jpg', $vmRes->{'filepath'} );
+		$this->assertStringEndsWith( '150x150.png', $vmRes->{'filepath'} );
+		$this->assertTrue( $exists );
+		$this->assertGreaterThan( 4096, $filesize );
+	}
+
+	/**
+	 * Test that a single fullpage screenshot can be taken
+	 */
+	public function testTakeFullpageScreenshot()
+	{
+		$url = self::$server . '/image.html';
+		$e = new Emulation(150, 20, 1, 'UserAgent', false, false, false );
+
+		// Specify a full page emulation is desired
+		$e->setFullPage(true);
+
+		$process = new ScreenshotProcess( $url, [$e] );
+
+		// Enable debugging
+		$process->setEnv([
+			'LOG_LEVEL' => 'debug'
+		]);
+
+		// Chrome
+		$manager = new ChromeProcessManager( self::$defaultPort, 1 );
+
+		// Enqueue the job
+		$manager
+			->enqueue( $process )
+			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj, &$out, &$exists, &$filesize )
+			{
+				$out = $successfulProcess->getErrorOutput();
+				$obj = $successfulProcess->getRenderedPageInfoObj();
+
+				/** @var RenderedHTTPPageInfo $obj */
+				$exists = file_exists( $obj->getVmcodeResults()[0]->{'filepath'} );
+				$filesize = filesize( $obj->getVmcodeResults()[0]->{'filepath'} );
+
+			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out )
+			{
+				$out = $failedProcess->getErrorOutput();
+				$procFailed = true;
+			} );
+
+		$manager->then( null, function () use ( &$queueFailed ) 	{
+			$queueFailed = true;
+		} );
+
+		// Start processing
+		$manager->run();
+
+		$procFailed && $this->fail( "Process should not have failed" );
+		$queueFailed && $this->fail( "Queue should not have failed" );
+
+		/** @var RenderedHTTPPageInfo $obj */
+		// Check the object
+		$vmRes = $obj->getVmcodeResults()[0];
+		$this->assertInstanceOf( \stdClass::class, $vmRes );
+		$this->assertContains( '150x15', $vmRes->{'filepath'} );
 		$this->assertTrue( $exists );
 		$this->assertGreaterThan( 4096, $filesize );
 	}

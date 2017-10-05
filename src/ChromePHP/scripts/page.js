@@ -50,7 +50,7 @@ let results = {
     rawHtml : "",
     renderedHtml : "",
     consoleLogs : [],
-    vmcodeResults : [],
+    vmcodeResults: null,
     requests : [],
     failed : [],
     errors : [],
@@ -284,12 +284,13 @@ let mainRequests = [];
 
             let vm = require('vm'),
                 sandbox = {
+                    require: require,
                     page: sandboxPage,
                     console: sandboxLogger,
                     logger: sandboxLogger,
                     argv: argv,
                     temp: temp,
-                    vmcodeResults: results.vmcodeResults
+                    vmcodeResults: null
                 };
 
             logger.debug('Running VM code in sandbox');
@@ -298,6 +299,9 @@ let mainRequests = [];
                 displayErrors: true
             });
             logger.debug('VM code finished');
+
+            // Update the vm code results
+            results.vmcodeResults = sandbox.vmcodeResults;
 
         } catch (err) {
             // Note the error in the logger, and the returned results object

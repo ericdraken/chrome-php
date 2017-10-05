@@ -23,11 +23,11 @@ class ScreenshotProcess extends PageInfoProcess
 	 * ScreenshotProcess constructor.
 	 *
 	 * @param string $url
-	 * @param array $args
 	 * @param Emulation[] $emulations
+	 * @param array $args
 	 * @param int $timeout
 	 */
-	public function __construct( string $url, array $args = [], array $emulations, $timeout = 10 )
+	public function __construct( string $url, array $emulations, array $args = [], $timeout = 10 )
 	{
 		// Set the device emulations to screenshot. Several may be supplied
 		if ( ! count( $emulations ) ) {

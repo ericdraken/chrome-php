@@ -33,6 +33,9 @@ class Emulation
 	/** @var string */
 	protected $userAgent = '';
 
+	/** @var bool */
+	protected $fullPage = false;
+
 	/**
 	 * Emulation constructor
 	 *
@@ -43,6 +46,7 @@ class Emulation
 	 * @param bool $isMobile
 	 * @param bool $hasTouch
 	 * @param bool $isLandscape
+	 * @param bool $fullPage
 	 */
 	public function __construct(
 		int $width,
@@ -51,7 +55,8 @@ class Emulation
 		string $userAgent = '',
 		bool $isMobile = false,
 		bool $hasTouch = false,
-		bool $isLandscape = false
+		bool $isLandscape = false,
+		bool $fullPage = false
 	) {
 		if ( $width < 1 || $width > 4096 ) {
 			throw new InvalidArgumentException( "Width of $width is invalid" );
@@ -72,6 +77,7 @@ class Emulation
 		$this->hasTouch = $hasTouch;
 		$this->isLandscape = $isLandscape;
 		$this->userAgent = $userAgent ?: '';
+		$this->fullPage = $fullPage;
 	}
 
 	/**
@@ -95,6 +101,9 @@ class Emulation
 		// Assemble the object consumed by Puppeteer
 		$obj->viewport = $v;
 		$obj->userAgent = $this->userAgent;
+
+		// Extra information
+		$obj->fullPage = $this->fullPage;
 
 		return json_encode( $obj );
 	}
@@ -153,5 +162,22 @@ class Emulation
 	public function getUserAgent(): string
 	{
 		return $this->userAgent;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function isFullPage(): bool
+	{
+		return $this->fullPage;
+	}
+
+	/**
+	 * This parameter is only used when taking screenshots
+	 * @param bool $fullPage
+	 */
+	public function setFullPage( bool $fullPage )
+	{
+		$this->fullPage = $fullPage;
 	}
 }

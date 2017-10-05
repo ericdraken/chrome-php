@@ -13,13 +13,23 @@
  *   require - To include more modules
  *   argv - Access script params
  *   temp - Temp folder to write files
- *   vmcodeResults[] - Place results here
+ *   vmcodeResults - Place results here
  */
 (async () => {
 
+    const fs = require('fs');
+    const sizeOf = require('image-size');
+
     // Get the emulations JSON string
-    let emulations = argv.emulations;
-    let emuArr = JSON.parse(emulations);    // Throw exception on failure
+    const type = 'png';
+    const emulations = argv.emulations;
+    const emuArr = JSON.parse(emulations);    // Throw exception on failure
+
+    // TODO: finish this
+    let url = 'url';
+
+    // Set the object type
+    vmcodeResults = [];
 
     for (let emulationObj of emuArr)
     {
@@ -32,9 +42,39 @@
                 await page.setUserAgent(emulationObj['userAgent']);
             }
 
+            // Full page mode is decided by each emulation
+            let fullPageMode = emulationObj.hasOwnProperty('fullPage') && emulationObj['fullPage'];
+
+            if (fullPageMode) {
+                logger.debug('Setting fullpage mode');
+            }
+
             // Take screenshot
-            let filepath = `${temp}/url-${emulationObj['viewport']['width']}x${emulationObj['viewport']['height']}.jpg`;
-            await page.screenshot({path: filepath});
+            let filepath = `${temp}/${url}-${emulationObj['viewport']['width']}x${emulationObj['viewport']['height']}.${type}`;
+            await page.screenshot({
+                path: filepath,
+
+                // Options
+                type: type, // jpeg or png
+                // quality: 100 // N/A for PNG
+                fullPage: fullPageMode,
+                // clip: {}
+                // omitBackground: false
+            });
+
+            if (fullPageMode)
+            {
+                // Rename the file to the actual dimensions on full page mode
+                let size = sizeOf(filepath);
+                let newFilepath = `${temp}/${url}-${size.width}x${size.height}.${type}`;
+                fs.renameSync(filepath, newFilepath);
+                filepath = newFilepath;
+
+                // Update the expected viewport as well
+                emulationObj['viewport']['width'] = size.width;
+                emulationObj['viewport']['height'] = size.height;
+            }
+
             logger.debug('Screenshot saved to:', filepath);
 
             // Save the results
