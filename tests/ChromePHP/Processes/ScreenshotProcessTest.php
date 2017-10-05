@@ -183,12 +183,30 @@ JS;
 	}
 
 	/**
-	 * Test that a single screenshot can be taken
+	 * Provide test data for the test below
+	 * @return array
 	 */
-	public function testTakeScreenshot()
+	public function scaleGenerator()
+	{
+		return [
+			'x1.0' => [1.0, '150x150x1.png'],
+			'x2.0' => [2.0, '150x150x2.png'],
+			'x2.5' => [2.5, '150x150x2.5.png']
+		];
+	}
+
+	/**
+	 * Test that a single screenshot of scale 2.0 can be taken
+	 *
+	 * @dataProvider scaleGenerator
+	 *
+	 * @param float $scale
+	 * @param string $filename
+	 */
+	public function testTakeScaledScreenshots( float $scale, string $filename )
 	{
 		$url = self::$server . '/image.jpg';
-		$e = new Emulation(150, 150, 1, 'UserAgent', false, false, false );
+		$e = new Emulation(150, 150, $scale, 'UserAgent', false, false, false );
 
 		$process = new ScreenshotProcess( $url, [$e] );
 
@@ -232,7 +250,7 @@ JS;
 		// Check the object
 		$vmRes = $obj->getVmcodeResults()[0];
 		$this->assertInstanceOf( \stdClass::class, $vmRes );
-		$this->assertStringEndsWith( '150x150.png', $vmRes->{'filepath'} );
+		$this->assertStringEndsWith( $filename, $vmRes->{'filepath'} );
 		$this->assertTrue( $exists );
 		$this->assertGreaterThan( 4096, $filesize );
 	}
@@ -291,6 +309,66 @@ JS;
 		$vmRes = $obj->getVmcodeResults()[0];
 		$this->assertInstanceOf( \stdClass::class, $vmRes );
 		$this->assertContains( '150x15', $vmRes->{'filepath'} );
+		$this->assertStringEndsWith( 'x1.png', $vmRes->{'filepath'} );
+		$this->assertTrue( $exists );
+		$this->assertGreaterThan( 4096, $filesize );
+	}
+
+	/**
+	 * Test that a single fullpage screenshot can be taken
+	 * past 16384 pixels with a scale factor of 1
+	 */
+	public function testTakeFullpageScreenshotOver16384px()
+	{
+		$url = self::$server . '/18000height.html';
+		$e = new Emulation(1024, 768, 1, 'UserAgent', false, false, false );
+
+		// Specify a full page emulation is desired
+		$e->setFullPage(true);
+
+		$process = new ScreenshotProcess( $url, [$e] );
+
+		// Enable debugging
+		$process->setEnv([
+			'LOG_LEVEL' => 'debug'
+		]);
+
+		// Chrome
+		$manager = new ChromeProcessManager( self::$defaultPort, 1 );
+
+		// Enqueue the job
+		$manager
+			->enqueue( $process )
+			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj, &$out, &$exists, &$filesize )
+			{
+				$out = $successfulProcess->getErrorOutput();
+				$obj = $successfulProcess->getRenderedPageInfoObj();
+
+				/** @var RenderedHTTPPageInfo $obj */
+				$exists = file_exists( $obj->getVmcodeResults()[0]->{'filepath'} );
+				$filesize = filesize( $obj->getVmcodeResults()[0]->{'filepath'} );
+
+			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out )
+			{
+				$out = $failedProcess->getErrorOutput();
+				$procFailed = true;
+			} );
+
+		$manager->then( null, function () use ( &$queueFailed ) 	{
+			$queueFailed = true;
+		} );
+
+		// Start processing
+		$manager->run();
+
+		$procFailed && $this->fail( "Process should not have failed" );
+		$queueFailed && $this->fail( "Queue should not have failed" );
+
+		/** @var RenderedHTTPPageInfo $obj */
+		// Check the object
+		$vmRes = $obj->getVmcodeResults()[0];
+		$this->assertInstanceOf( \stdClass::class, $vmRes );
+		$this->assertContains( '1024x1', $vmRes->{'filepath'} );
 		$this->assertTrue( $exists );
 		$this->assertGreaterThan( 4096, $filesize );
 	}

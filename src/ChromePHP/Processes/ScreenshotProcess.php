@@ -83,14 +83,15 @@ class ScreenshotProcess extends PageInfoProcess
 				throw new RuntimeException( "Supposedly saved screenshot {$result->{'filepath'}} doesn't exist" );
 			}
 
-			// Confirm dimensions
+			$scale = $result->{'emulation'}->{'viewport'}->{'deviceScaleFactor'};
 			list($width, $height) = getimagesize( $result->{'filepath'} );
-			$expectedWidth = $result->{'emulation'}->{'viewport'}->{'width'};
+
+			$expectedWidth = intval( ceil( $result->{'emulation'}->{'viewport'}->{'width'} * $scale ), 10);
 			if ( $width !== $expectedWidth ) {
 				throw new RuntimeException( "Expected width doesn't match actual width: $expectedWidth vs $width" );
 			}
 
-			$expectedHeight = $result->{'emulation'}->{'viewport'}->{'height'};
+			$expectedHeight = intval( ceil( $result->{'emulation'}->{'viewport'}->{'height'} * $scale ), 10);
 			if ( $height !== $expectedHeight ) {
 				throw new RuntimeException( "Expected height doesn't match actual height: $expectedHeight vs $height" );
 			}

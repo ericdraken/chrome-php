@@ -7,7 +7,9 @@
     "private": true
   },
   "dependencies": {
+    "bluebird": "^3.5.1",
     "chrome-remote-interface": "^0.23.3",
+    "gm": "^1.23.0",
     "image-size": "^0.6.1",
     "minimist": "^1.2.0",
     "process": "^0.11.10",

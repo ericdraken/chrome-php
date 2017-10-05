@@ -19,7 +19,7 @@ class Emulation
 	protected $height;
 
 	/** @var double */
-	protected $scaleFactor;
+	protected $deviceScaleFactor;
 
 	/** @var bool */
 	protected $isMobile = false;
@@ -41,7 +41,7 @@ class Emulation
 	 *
 	 * @param int $width
 	 * @param int $height
-	 * @param float $scaleFactor
+	 * @param float $deviceScaleFactor
 	 * @param string $userAgent
 	 * @param bool $isMobile
 	 * @param bool $hasTouch
@@ -51,7 +51,7 @@ class Emulation
 	public function __construct(
 		int $width,
 		int $height,
-		float $scaleFactor = 1.0,
+		float $deviceScaleFactor = 1.0,
 		string $userAgent = '',
 		bool $isMobile = false,
 		bool $hasTouch = false,
@@ -66,13 +66,13 @@ class Emulation
 			throw new InvalidArgumentException( "Height of $height is invalid" );
 		}
 
-		if ( $scaleFactor < 1.0 || $scaleFactor > 3.0 ) {
-			throw new InvalidArgumentException( "Please supply a scale between 0 and 3. Got $scaleFactor" );
+		if ( $deviceScaleFactor < 1.0 || $deviceScaleFactor > 3.0 ) {
+			throw new InvalidArgumentException( "Please supply a scale between 0 and 3. Got $deviceScaleFactor" );
 		}
 
 		$this->width = $width;
 		$this->height = $height;
-		$this->scaleFactor = $scaleFactor;
+		$this->deviceScaleFactor = $deviceScaleFactor;
 		$this->isMobile = $isMobile;
 		$this->hasTouch = $hasTouch;
 		$this->isLandscape = $isLandscape;
@@ -93,7 +93,7 @@ class Emulation
 		$v = new \stdClass();
 		$v->width = $this->width;
 		$v->height = $this->height;
-		$v->deviceScaleFactor = $this->scaleFactor;
+		$v->deviceScaleFactor = $this->deviceScaleFactor;
 		$v->isMobile = $this->isMobile;
 		$v->hasTouch = $this->hasTouch;
 		$v->isLandscape = $this->isLandscape;
@@ -127,9 +127,9 @@ class Emulation
 	/**
 	 * @return double
 	 */
-	public function getScaleFactor(): double
+	public function getDeviceScaleFactor(): double
 	{
-		return $this->scaleFactor;
+		return $this->deviceScaleFactor;
 	}
 
 	/**
