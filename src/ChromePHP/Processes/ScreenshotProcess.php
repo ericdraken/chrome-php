@@ -12,12 +12,16 @@ use Draken\ChromePHP\Emulations\Emulation;
 use Draken\ChromePHP\Exceptions\InvalidArgumentException;
 use Draken\ChromePHP\Exceptions\RuntimeException;
 use Draken\ChromePHP\Processes\Response\RenderedHTTPPageInfo;
+use Draken\ChromePHP\Processes\Response\ScreenshotInfo;
 use Draken\ChromePHP\Utils\Paths;
 
 class ScreenshotProcess extends PageInfoProcess
 {
 	/** @var Emulation[]  */
 	private $emulations = [];
+
+	/** @var ScreenshotInfo[]  */
+	private $screenshots = [];
 
 	/**
 	 * ScreenshotProcess constructor.
@@ -83,18 +87,31 @@ class ScreenshotProcess extends PageInfoProcess
 				throw new RuntimeException( "Supposedly saved screenshot {$result->{'filepath'}} doesn't exist" );
 			}
 
-			$scale = $result->{'emulation'}->{'viewport'}->{'deviceScaleFactor'};
 			list($width, $height) = getimagesize( $result->{'filepath'} );
+			if ( ! $width || ! $height ) {
+				throw new RuntimeException( 'Unexpected image dimensions' );
+			}
 
-			$expectedWidth = intval( ceil( $result->{'emulation'}->{'viewport'}->{'width'} * $scale ), 10);
+			$expectedWidth = $result->{'width'};
 			if ( $width !== $expectedWidth ) {
 				throw new RuntimeException( "Expected width doesn't match actual width: $expectedWidth vs $width" );
 			}
 
-			$expectedHeight = intval( ceil( $result->{'emulation'}->{'viewport'}->{'height'} * $scale ), 10);
+			$expectedHeight = $result->{'height'};
 			if ( $height !== $expectedHeight ) {
 				throw new RuntimeException( "Expected height doesn't match actual height: $expectedHeight vs $height" );
 			}
+
+			// Save the screenshot object
+			$this->screenshots[] = new ScreenshotInfo( $result );
 		}
+	}
+
+	/**
+	 * @return ScreenshotInfo[]
+	 */
+	public function getScreenshots(): array
+	{
+		return $this->screenshots;
 	}
 }

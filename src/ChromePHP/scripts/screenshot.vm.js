@@ -6,15 +6,8 @@
  */
 
 // Construct the saved screenshot path
-const buildFilepath = (temp, url, emulationObj, type) => {
-    "use strict";
-    return `
-        ${temp}/
-        ${url}-
-        ${emulationObj['viewport']['width']}x
-        ${emulationObj['viewport']['height']}x
-        ${emulationObj['viewport']['deviceScaleFactor']}.
-        ${type}`.replace(/\s+/g, '');
+const buildFilepath = (temp, url, w, h, s, type) => {
+    return `${temp}/${url}-${w}x${h}x${s}.${type}`;
 };
 
 /**
@@ -25,7 +18,7 @@ const buildFilepath = (temp, url, emulationObj, type) => {
  *   require - To include more modules
  *   argv - Access script params
  *   temp - Temp folder to write files
- *   vmcodeResults - Place results here
+ *   vmcodeResults - Place results here. Initialize this!
  */
 (async () => {
 
@@ -60,14 +53,19 @@ const buildFilepath = (temp, url, emulationObj, type) => {
             continue;
         }
 
+        let vp = emulationObj['viewport'],
+            w = vp['width'],
+            h = vp['height'],
+            s = vp['deviceScaleFactor'],
+            filepath = buildFilepath(temp, url, w, h, s, type),
+            size = -1;
+
         logger.debug('Setting viewport');
-        await page.setViewport(emulationObj['viewport']);
+        await page.setViewport(vp);
         if(emulationObj['userAgent'].length) {
             logger.debug('Setting userAgent to %s', emulationObj['userAgent']);
             await page.setUserAgent(emulationObj['userAgent']);
         }
-
-        let filepath = buildFilepath(temp, url, emulationObj, type);
 
         // Full page mode is decided by each emulation
         let fullPageMode = emulationObj.hasOwnProperty('fullPage') && emulationObj['fullPage'];
@@ -76,7 +74,7 @@ const buildFilepath = (temp, url, emulationObj, type) => {
             // We won't stitch horizontally
             const pageWidth = await page.$eval('body', el => el.clientWidth);
             if (pageWidth >= chromeHeightLimit) {
-                let msg = 'Page width greater than Chrome canvas size limit'
+                let msg = 'Page width greater than Chrome canvas size limit';
                 logger.error(msg);
                 vmcodeResults.push(new Error(msg));
                 continue;
@@ -91,13 +89,11 @@ const buildFilepath = (temp, url, emulationObj, type) => {
                 // Normal fullpage screenshot
                 await page.screenshot({
                     path: filepath,
-
-                    // Options
                     type: type, // jpeg or png
                     // quality: 100 // N/A for PNG
                     fullPage: fullPageMode,
                     // clip: {}
-                    // omitBackground: false
+                    omitBackground: false
                 });
             }
             else
@@ -130,8 +126,8 @@ const buildFilepath = (temp, url, emulationObj, type) => {
                             y: y,
                             width: pageWidth,
                             height: sliceHeight
-                        }
-                        // omitBackground: false
+                        },
+                        omitBackground: false
                     });
                     slicesArr.push(sliceOutFile);
                     logger.debug('Screenshot slice saved to: %s', sliceOutFile);
@@ -148,6 +144,7 @@ const buildFilepath = (temp, url, emulationObj, type) => {
                     logger.debug('Appending slice %s', slice);
                 });
 
+                // GM is async, so Bluebird allows us to wait for its file save operation
                 let Promise = require('bluebird');
                 Promise.promisifyAll(gm.prototype);
 
@@ -163,14 +160,13 @@ const buildFilepath = (temp, url, emulationObj, type) => {
                     });
             }
 
-            // Update the resultant emulated viewport
-            let size = sizeOf(filepath);
-            let scaleFactor = emulationObj['viewport']['deviceScaleFactor'];
-            emulationObj['viewport']['width'] = size.width / scaleFactor;
-            emulationObj['viewport']['height'] = size.height / scaleFactor;
+            // Update the screenshot file name
+            size = sizeOf(filepath);
+            w = size.width;
+            h = size.height;
 
             // Rename the file to the page actual dimensions
-            let newFilepath = buildFilepath(temp, url, emulationObj, type);
+            let newFilepath = buildFilepath(temp, url, w, h, s, type);
             fs.renameSync(filepath, newFilepath);
             filepath = newFilepath;
         }
@@ -179,14 +175,17 @@ const buildFilepath = (temp, url, emulationObj, type) => {
             // Normal screenshot
             await page.screenshot({
                 path: filepath,
-
-                // Options
                 type: type, // jpeg or png
                 // quality: 100 // N/A for PNG
                 fullPage: fullPageMode,
                 // clip: {}
-                // omitBackground: false
+                omitBackground: false
             });
+
+            // Update the screenshot size
+            size = sizeOf(filepath);
+            w = size.width;
+            h = size.height;
         }
 
         logger.debug('Screenshot saved to:', filepath);
@@ -195,7 +194,12 @@ const buildFilepath = (temp, url, emulationObj, type) => {
         vmcodeResults.push( {
             url : page.url(),
             emulation : emulationObj,
-            filepath: filepath
+            filepath: filepath,
+            width: w,
+            height: h,
+            scale: s,
+            fullPage: fullPageMode,
+            filesize: size
         } );
     }
 

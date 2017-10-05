@@ -12,23 +12,8 @@ use Draken\ChromePHP\Exceptions\InvalidArgumentException;
 
 class Emulation
 {
-	/** @var int */
-	protected $width;
-
-	/** @var int */
-	protected $height;
-
-	/** @var double */
-	protected $deviceScaleFactor;
-
-	/** @var bool */
-	protected $isMobile = false;
-
-	/** @var bool */
-	protected $hasTouch = false;
-
-	/** @var bool */
-	protected $isLandscape = false;
+	/** @var \stdClass */
+	protected $viewport;
 
 	/** @var string */
 	protected $userAgent = '';
@@ -70,12 +55,16 @@ class Emulation
 			throw new InvalidArgumentException( "Please supply a scale between 0 and 3. Got $deviceScaleFactor" );
 		}
 
-		$this->width = $width;
-		$this->height = $height;
-		$this->deviceScaleFactor = $deviceScaleFactor;
-		$this->isMobile = $isMobile;
-		$this->hasTouch = $hasTouch;
-		$this->isLandscape = $isLandscape;
+		$this->viewport = new \stdClass();
+		$vp = &$this->viewport;
+
+		$vp->width = $width;
+		$vp->height = $height;
+		$vp->deviceScaleFactor = $deviceScaleFactor;
+		$vp->isMobile = $isMobile;
+		$vp->hasTouch = $hasTouch;
+		$vp->isLandscape = $isLandscape;
+
 		$this->userAgent = $userAgent ?: '';
 		$this->fullPage = $fullPage;
 	}
@@ -88,21 +77,8 @@ class Emulation
 	public function __toString()
 	{
 		$obj = new \stdClass();
-
-		// Viewport
-		$v = new \stdClass();
-		$v->width = $this->width;
-		$v->height = $this->height;
-		$v->deviceScaleFactor = $this->deviceScaleFactor;
-		$v->isMobile = $this->isMobile;
-		$v->hasTouch = $this->hasTouch;
-		$v->isLandscape = $this->isLandscape;
-
-		// Assemble the object consumed by Puppeteer
-		$obj->viewport = $v;
+		$obj->viewport = $this->viewport;
 		$obj->userAgent = $this->userAgent;
-
-		// Extra information
 		$obj->fullPage = $this->fullPage;
 
 		return json_encode( $obj );
@@ -113,7 +89,7 @@ class Emulation
 	 */
 	public function getWidth(): int
 	{
-		return $this->width;
+		return $this->viewport->width;
 	}
 
 	/**
@@ -121,15 +97,15 @@ class Emulation
 	 */
 	public function getHeight(): int
 	{
-		return $this->height;
+		return $this->viewport->height;
 	}
 
 	/**
-	 * @return double
+	 * @return float
 	 */
-	public function getDeviceScaleFactor(): double
+	public function getDeviceScaleFactor(): float
 	{
-		return $this->deviceScaleFactor;
+		return $this->viewport->deviceScaleFactor;
 	}
 
 	/**
@@ -137,7 +113,7 @@ class Emulation
 	 */
 	public function isMobile(): bool
 	{
-		return $this->isMobile;
+		return $this->viewport->isMobile;
 	}
 
 	/**
@@ -145,7 +121,7 @@ class Emulation
 	 */
 	public function hasTouch(): bool
 	{
-		return $this->hasTouch;
+		return $this->viewport->hasTouch;
 	}
 
 	/**
@@ -153,7 +129,7 @@ class Emulation
 	 */
 	public function isLandscape(): bool
 	{
-		return $this->isLandscape;
+		return $this->viewport->isLandscape;
 	}
 
 	/**

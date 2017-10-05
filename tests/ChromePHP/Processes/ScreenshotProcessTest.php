@@ -11,8 +11,11 @@ namespace Draken\ChromePHP\Processes;
 use Draken\ChromePHP\Commands\LinuxCommands;
 use Draken\ChromePHP\Core\ChromeProcessManager;
 use Draken\ChromePHP\Core\NodeProcess;
+use Draken\ChromePHP\Emulations\Devices\DefaultDesktop;
+use Draken\ChromePHP\Emulations\Devices\IPhone6Emulation;
 use Draken\ChromePHP\Emulations\Emulation;
 use Draken\ChromePHP\Processes\Response\RenderedHTTPPageInfo;
+use Draken\ChromePHP\Processes\Response\ScreenshotInfo;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 use ReflectionObject;
@@ -85,6 +88,7 @@ class ScreenshotProcessTest extends TestCase
 
 	/**
 	 * Only one --emulations should be present
+	 * @depends testConstructorSavedEmulations
 	 */
 	public function testConstructorOverwriteEmulation()
 	{
@@ -105,6 +109,7 @@ class ScreenshotProcessTest extends TestCase
 	/**
 	 * Test that the vmcode can access the emulations and return a
 	 * predictable response in the results object
+	 * @depends testConstructorSavedEmulations
 	 */
 	public function testVMCodeGetEmulations()
 	{
@@ -123,6 +128,7 @@ class ScreenshotProcessTest extends TestCase
 		$vmcode = <<<JS
 			(async () => {
 			    const emulations = argv.emulations;
+			    vmcodeResults = [];
 		    	vmcodeResults.push( emulations );
 			})();
 JS;
@@ -221,10 +227,11 @@ JS;
 		// Enqueue the job
 		$manager
 			->enqueue( $process )
-			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj, &$out, &$exists, &$filesize )
+			->then( function ( ScreenshotProcess $successfulProcess ) use ( &$obj, &$out, &$exists, &$filesize, &$shots )
 			{
 				$out = $successfulProcess->getErrorOutput();
 				$obj = $successfulProcess->getRenderedPageInfoObj();
+				$shots = $successfulProcess->getScreenshots();
 
 				/** @var RenderedHTTPPageInfo $obj */
 				$exists = file_exists( $obj->getVmcodeResults()[0]->{'filepath'} );
@@ -253,6 +260,140 @@ JS;
 		$this->assertStringEndsWith( $filename, $vmRes->{'filepath'} );
 		$this->assertTrue( $exists );
 		$this->assertGreaterThan( 4096, $filesize );
+
+		$this->assertCount( 1, $shots );
+		$this->assertInstanceOf( ScreenshotInfo::class, $shots[0] );
+
+		/** @var ScreenshotInfo $info */
+		$info = $shots[0];
+		$this->assertInstanceOf( Emulation::class, $info->getEmulation() );
+	}
+
+	/**
+	 * Test that multiple screenshots of the same page on the same device can be taken
+	 */
+	public function testTakeMultipleScreenshotsSameDevice()
+	{
+		$url = self::$server . '/image.jpg';
+		$e = new Emulation(150, 150, 1.0, 'UserAgent', false, false, false );
+		$f = new Emulation(50, 50, 1.0, 'UserAgent', false, false, false );
+
+		$process = new ScreenshotProcess( $url, [$e, $f] );
+
+		// Enable debugging
+		$process->setEnv([
+			'LOG_LEVEL' => 'debug'
+		]);
+
+		// Chrome
+		$manager = new ChromeProcessManager( self::$defaultPort, 1 );
+
+		// Enqueue the job
+		$manager
+			->enqueue( $process )
+			->then( function ( ScreenshotProcess $successfulProcess ) use ( &$obj, &$out, &$exists, &$filesize, &$shots )
+			{
+				$out = $successfulProcess->getErrorOutput();
+				$obj = $successfulProcess->getRenderedPageInfoObj();
+				$shots = $successfulProcess->getScreenshots();
+
+				/** @var RenderedHTTPPageInfo $obj */
+				$exists = file_exists( $obj->getVmcodeResults()[0]->{'filepath'} );
+				$filesize = filesize( $obj->getVmcodeResults()[0]->{'filepath'} );
+
+			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out )
+			{
+				$out = $failedProcess->getErrorOutput();
+				$procFailed = true;
+			} );
+
+		$manager->then( null, function () use ( &$queueFailed ) 	{
+			$queueFailed = true;
+		} );
+
+		// Start processing
+		$manager->run();
+
+		$procFailed && $this->fail( "Process should not have failed" );
+		$queueFailed && $this->fail( "Queue should not have failed" );
+
+		$this->assertCount( 2, $shots );
+		$this->assertInstanceOf( ScreenshotInfo::class, $shots[0] );
+		$this->assertInstanceOf( ScreenshotInfo::class, $shots[1] );
+
+		/** @var ScreenshotInfo $info */
+		$info = $shots[0];
+		$this->assertInstanceOf( Emulation::class, $info->getEmulation() );
+		$this->assertEquals( 150, $info->getWidth() );
+
+		/** @var ScreenshotInfo $info */
+		$info = $shots[1];
+		$this->assertInstanceOf( Emulation::class, $info->getEmulation() );
+		$this->assertEquals( 50, $info->getWidth() );
+	}
+
+	/**
+	 * Test that multiple screenshots of the same page can be taken
+	 * even if the device type is changed (e.g. desktop --> iPhone)
+	 */
+	public function testTakeMultipleScreenshotsDifferentDevices()
+	{
+		$url = self::$server . '/image.jpg';
+		$e = new DefaultDesktop();
+		$f = new IPhone6Emulation();
+
+		$process = new ScreenshotProcess( $url, [$e, $f] );
+
+		// Enable debugging
+		$process->setEnv([
+			'LOG_LEVEL' => 'debug'
+		]);
+
+		// Chrome
+		$manager = new ChromeProcessManager( self::$defaultPort, 1 );
+
+		// Enqueue the job
+		$manager
+			->enqueue( $process )
+			->then( function ( ScreenshotProcess $successfulProcess ) use ( &$obj, &$out, &$exists, &$filesize, &$shots )
+			{
+				$out = $successfulProcess->getErrorOutput();
+				$obj = $successfulProcess->getRenderedPageInfoObj();
+				$shots = $successfulProcess->getScreenshots();
+
+				/** @var RenderedHTTPPageInfo $obj */
+				$exists = file_exists( $obj->getVmcodeResults()[0]->{'filepath'} );
+				$filesize = filesize( $obj->getVmcodeResults()[0]->{'filepath'} );
+
+			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out )
+			{
+				$out = $failedProcess->getErrorOutput();
+				$procFailed = true;
+			} );
+
+		$manager->then( null, function () use ( &$queueFailed ) 	{
+			$queueFailed = true;
+		} );
+
+		// Start processing
+		$manager->run();
+
+		$procFailed && $this->fail( "Process should not have failed" );
+		$queueFailed && $this->fail( "Queue should not have failed" );
+
+		$this->assertCount( 2, $shots );
+		$this->assertInstanceOf( ScreenshotInfo::class, $shots[0] );
+		$this->assertInstanceOf( ScreenshotInfo::class, $shots[1] );
+
+		/** @var ScreenshotInfo $info */
+		$info = $shots[0];
+		$this->assertInstanceOf( Emulation::class, $info->getEmulation() );
+		$this->assertEquals( $e->getWidth() * $e->getDeviceScaleFactor(), $info->getWidth() );
+
+		/** @var ScreenshotInfo $info */
+		$info = $shots[1];
+		$this->assertInstanceOf( Emulation::class, $info->getEmulation() );
+		$this->assertEquals( $f->getWidth() * $f->getDeviceScaleFactor(), $info->getWidth() );
 	}
 
 	/**
@@ -279,10 +420,11 @@ JS;
 		// Enqueue the job
 		$manager
 			->enqueue( $process )
-			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj, &$out, &$exists, &$filesize )
+			->then( function ( ScreenshotProcess $successfulProcess ) use ( &$obj, &$out, &$exists, &$filesize, &$shots )
 			{
 				$out = $successfulProcess->getErrorOutput();
 				$obj = $successfulProcess->getRenderedPageInfoObj();
+				$shots = $successfulProcess->getScreenshots();
 
 				/** @var RenderedHTTPPageInfo $obj */
 				$exists = file_exists( $obj->getVmcodeResults()[0]->{'filepath'} );
@@ -312,6 +454,13 @@ JS;
 		$this->assertStringEndsWith( 'x1.png', $vmRes->{'filepath'} );
 		$this->assertTrue( $exists );
 		$this->assertGreaterThan( 4096, $filesize );
+
+		$this->assertCount( 1, $shots );
+		$this->assertInstanceOf( ScreenshotInfo::class, $shots[0] );
+
+		/** @var ScreenshotInfo $info */
+		$info = $shots[0];
+		$this->assertInstanceOf( Emulation::class, $info->getEmulation() );
 	}
 
 	/**
@@ -339,10 +488,11 @@ JS;
 		// Enqueue the job
 		$manager
 			->enqueue( $process )
-			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj, &$out, &$exists, &$filesize )
+			->then( function ( ScreenshotProcess $successfulProcess ) use ( &$obj, &$out, &$exists, &$filesize, &$shots )
 			{
 				$out = $successfulProcess->getErrorOutput();
 				$obj = $successfulProcess->getRenderedPageInfoObj();
+				$shots = $successfulProcess->getScreenshots();
 
 				/** @var RenderedHTTPPageInfo $obj */
 				$exists = file_exists( $obj->getVmcodeResults()[0]->{'filepath'} );
@@ -371,5 +521,12 @@ JS;
 		$this->assertContains( '1024x1', $vmRes->{'filepath'} );
 		$this->assertTrue( $exists );
 		$this->assertGreaterThan( 4096, $filesize );
+
+		$this->assertCount( 1, $shots );
+		$this->assertInstanceOf( ScreenshotInfo::class, $shots[0] );
+
+		/** @var ScreenshotInfo $info */
+		$info = $shots[0];
+		$this->assertInstanceOf( Emulation::class, $info->getEmulation() );
 	}
 }

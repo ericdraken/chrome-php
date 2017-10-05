@@ -244,6 +244,16 @@ let mainRequests = [];
 
     }).then(async (response) => {
 
+        // Only get the rendered html if
+        // the raw html is present
+        if (results.rawHtml.length > 0) {
+            logger.debug('Getting rendered page content');
+            results.renderedHtml = await page.content();
+        }
+        return response;
+
+    }).then(async (response) => {
+
         // If vm code is present, then execute it in a sandbox,
         // if not, then skip over this section
         if(vmcode===false) {
@@ -255,7 +265,6 @@ let mainRequests = [];
             let sandboxPage = new Proxy(page, {
                 get: function(target, name, receiver) {
                     switch(name) {
-                        case 'reload':
                         case 'close':
                         case 'exposeFunction':
                         case 'setRequestInterceptionEnabled':
@@ -322,14 +331,6 @@ let mainRequests = [];
         results.errors.push(err.message);
         logger.error('Navigation error:', err.message);
     });
-
-    logger.debug('Getting rendered page content');
-
-    // Only get the rendered html if
-    // the raw html is present
-    if (results.rawHtml.length > 0) {
-        results.renderedHtml = await page.content();
-    }
 
     logger.debug('There were %s requests', requests.size);
 
