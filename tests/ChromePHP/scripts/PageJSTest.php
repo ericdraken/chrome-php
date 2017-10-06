@@ -326,6 +326,7 @@ HTML;
 
 	/**
 	 * Test that an unreachable domain times out with a networkIdle signal being sent
+	 * FIXME: This will not timeout and the process will fail
 	 */
 	public function testUnreachableDomain()
 	{
