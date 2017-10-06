@@ -38,8 +38,8 @@ const buildFilepath = (temp, url, w, h, s, type) => {
      */
     const chromeHeightLimit = 16384;
 
-    // TODO: finish this
-    let url = 'url';
+    // Use the URL as part of the screenshot file name
+    let url = slugify(page.url());
 
     // Set the object type
     vmcodeResults = [];
@@ -204,3 +204,15 @@ const buildFilepath = (temp, url, w, h, s, type) => {
     }
 
 })();
+
+// Original: https://gist.github.com/mathewbyrne/1280286
+function slugify(text)
+{
+    return text.toString().toLowerCase()
+        .replace(/\s+/g, '-')           // Replace spaces with -
+        .replace(/[:/&?.=]/g, '-')      // Replace special URL chars with -
+        .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
+        .replace(/--+/g, '-')           // Replace multiple - with single -
+        .replace(/^-+/, '')             // Trim - from start of text
+        .replace(/-+$/, '');            // Trim - from end of text
+}
