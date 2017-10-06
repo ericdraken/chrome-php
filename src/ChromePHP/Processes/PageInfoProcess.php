@@ -27,6 +27,9 @@ class PageInfoProcess extends NodeProcess
 	/** @var Emulation */
 	protected $emulation;
 
+	/** @var string */
+	protected $url;
+
 	/**
 	 * PageInfoProcess constructor.
 	 *
@@ -40,6 +43,12 @@ class PageInfoProcess extends NodeProcess
 		if ( empty( $url ) ) {
 			throw new InvalidArgumentException( "Supplied URL is empty" );
 		}
+
+		if ( ! filter_var( $url, FILTER_VALIDATE_URL ) ) {
+			throw new InvalidArgumentException( "Invalid URL. Got: $url" );
+		}
+
+		$this->url = $url;
 
 		// Register the device emulation or a default desktop emulation
 		$this->emulation = is_null( $emulation ) ? new DefaultDesktop() : $emulation;
@@ -71,6 +80,14 @@ class PageInfoProcess extends NodeProcess
 	public function getRenderedPageInfoObj(): RenderedHTTPPageInfo
 	{
 		return $this->renderedPageInfoObj;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getUrl(): string
+	{
+		return $this->url;
 	}
 
 	/**
