@@ -32,6 +32,7 @@ const emulation = argv.emulation || false;
 const networkIdleTimeout = argv.idletime || 500; // 0.5s
 const timeout = argv.timeout || 10000; // 10s
 const vmcode = argv.vmcode || false;
+const ignoreSSLErrors = argv.ignoressl || false;
 
 // Check the URL
 if (!url) {
@@ -80,7 +81,10 @@ let mainRequests = [];
 
     // Connect to a running Chrome instance
     logger.debug( 'Connecting to %s', wsep );
-    browser = await puppeteer.connect({browserWSEndpoint: wsep});
+    browser = await puppeteer.connect({
+        browserWSEndpoint: wsep,
+        ignoreHTTPSErrors: ignoreSSLErrors
+    });
     logger.debug( 'Connected' );
 
     // Open a new tab
@@ -211,6 +215,7 @@ let mainRequests = [];
     page.on('error', errorLogging);
     page.on('pageerror', errorLogging);
 
+    logger.debug('Request timeout: %s ms, network idle timeout: %s ms', timeout, networkIdleTimeout);
     logger.info('Navigating to %s', url);
 
     // Store the initial request
