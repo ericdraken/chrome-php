@@ -52,7 +52,7 @@ class PageJSTest extends TestCase
 		// Node process from a string
 		$process = new NodeProcess( Paths::getNodeScriptsPath() . '/page.js', [
 			'--url='.$testUrl
-		], 1 );
+		], 5 );
 
 		// Enqueue the job
 		$manager
@@ -108,7 +108,7 @@ class PageJSTest extends TestCase
 		// Node process from a string
 		$process = new NodeProcess( Paths::getNodeScriptsPath() . '/page.js', [
 			'--url='.$testUrl
-		], 1, false, false );
+		], 5, false, false );
 
 		// Enable debugging
 		$process->setEnv([
@@ -170,7 +170,7 @@ HTML;
 		// Node process from a string
 		$process = new NodeProcess( Paths::getNodeScriptsPath() . '/page.js', [
 			'--url='.$testUrl
-		], 1, false, false );
+		], 5, false, false );
 
 		// Enable debugging
 		$process->setEnv([
@@ -230,7 +230,7 @@ HTML;
 		// Node process from a string
 		$process = new NodeProcess( Paths::getNodeScriptsPath() . '/page.js', [
 			'--url='.$testUrl
-		], 1, false, false );
+		], 5, false, false );
 
 		// Enable debugging
 		$process->setEnv([
@@ -291,7 +291,7 @@ HTML;
 		// Node process from a string
 		$process = new NodeProcess( Paths::getNodeScriptsPath() . '/page.js', [
 			'--url='.$testUrl
-		], 10 );
+		], 5 );
 
 		// Enable debugging
 		$process->setEnv([
