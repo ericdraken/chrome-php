@@ -53,7 +53,7 @@ let results = {
     vmcodeResults: null,
     requests : [],
     failed : [],
-    errors : [],
+    pageErrors : [],
     loadTime: -1
 };
 
@@ -206,7 +206,7 @@ let mainRequests = [];
     let errorLogging = (errorObj) => {
         "use strict";
         logger.warn('%s: %s', errorObj.name, errorObj.message);
-        results.errors.push(errorObj.toString());
+        results.pageErrors.push(errorObj.toString());
     };
     page.on('error', errorLogging);
     page.on('pageerror', errorLogging);
@@ -315,7 +315,7 @@ let mainRequests = [];
         } catch (err) {
             // Note the error in the logger, and the returned results object
             logger.error('VM script error: ', err.message, err.stack);
-            results.errors.push('VM script error: ' + err.message, err.stack);
+            results.pageErrors.push('VM script error: ' + err.message, err.stack);
         }
         return response;
 
@@ -328,7 +328,7 @@ let mainRequests = [];
         // * the timeout is exceeded during navigation.
         // * the main resource failed to load.
 
-        results.errors.push(err.message);
+        results.pageErrors.push(err.message);
         logger.error('Navigation error:', err.message);
     });
 

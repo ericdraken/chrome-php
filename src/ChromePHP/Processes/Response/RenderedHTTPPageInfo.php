@@ -44,7 +44,7 @@ class RenderedHTTPPageInfo
 	protected $failed = [];
 
 	/** @var string[] */
-	protected $errors = [];
+	protected $pageErrors = [];
 
 	/** @var int */
 	protected $loadTime = -1;
@@ -140,9 +140,9 @@ class RenderedHTTPPageInfo
 	/**
 	 * @return \string[]
 	 */
-	public function getErrors(): array
+	public function getPageErrors(): array
 	{
-		return $this->errors;
+		return $this->pageErrors;
 	}
 
 	/**

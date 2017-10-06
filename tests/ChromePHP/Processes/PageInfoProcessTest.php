@@ -318,7 +318,6 @@ JS;
 		$queueFailed && $this->fail( "Queue should not have failed" );
 
 		/** @var RenderedHTTPPageInfo $obj */
-		$this->assertContains( 'rendered', $obj->getRenderedHtml() );
 		$this->assertContains( 'Finished VM code', $out );
 
 		$this->assertCount( 1, $obj->getRedirectChain() );
@@ -633,9 +632,9 @@ JS;
 		$queueFailed && $this->fail( "Queue should not have failed" );
 
 		/** @var RenderedHTTPPageInfo $obj */
-		$this->assertCount( 2, $obj->getErrors() );
-		$this->assertContains( 'FunctionNotFound', $obj->getErrors()[0] );
-		$this->assertContains( 'MethodNotFound', $obj->getErrors()[1] );
+		$this->assertCount( 2, $obj->getPageErrors() );
+		$this->assertContains( 'FunctionNotFound', $obj->getPageErrors()[0] );
+		$this->assertContains( 'MethodNotFound', $obj->getPageErrors()[1] );
 	}
 
 	/**
