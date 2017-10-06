@@ -259,7 +259,7 @@ class ChromeCommandsTest extends TestCase
 	 */
 	public function testQuitChromeInstanceGracefully()
 	{
-		$port = self::$defaultPort + 7;
+		$port = self::$defaultPort + 10;
 
 		$localChromePath = Paths::getLocalChromiumBinaryPath();
 		$this->assertNotEmpty( $localChromePath );
