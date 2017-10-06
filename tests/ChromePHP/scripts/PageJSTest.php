@@ -274,4 +274,96 @@ HTML;
 		$this->assertEquals( 404, $obj->failed[0]->status );
 		$this->assertEquals( 'GET', $obj->failed[0]->method );
 	}
+
+	/**
+	 * Test that Puppeteer DevTools communication can be intercepted
+	 */
+	public function testCanDebugPuppeteerMessages()
+	{
+		$testBody = <<<'HTML'
+<!DOCTYPE html><html><head></head><body><img src="http://127.0.0.1/notexists" /></body></html>
+HTML;
+
+		$testUrl = $this->dataUri( $testBody );
+
+		$manager = new ChromeProcessManager( self::$defaultPort, 1 );
+
+		// Node process from a string
+		$process = new NodeProcess( Paths::getNodeScriptsPath() . '/page.js', [
+			'--url='.$testUrl
+		], 10 );
+
+		// Enable debugging
+		$process->setEnv([
+			'DEBUG' => '*'  // To get Chrome debug logs
+		]);
+
+		// Enqueue the job
+		$manager
+			->enqueue( $process )
+			->then( function ( NodeProcess $successfulProcess ) use ( &$out )
+			{
+				$out = $successfulProcess->getErrorOutput();
+			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out )
+			{
+				$out = $failedProcess->getErrorOutput();
+				$procFailed = true;
+			} );
+
+		$manager->then( null, function () use ( &$queueFailed )	{
+			$queueFailed = true;
+		} );
+
+		// Start processing
+		$manager->run();
+
+		$procFailed && $this->fail( "Process should not have failed" );
+		$queueFailed && $this->fail( "Queue should not have failed" );
+
+		$this->assertContains( ' SEND ', $out );
+		$this->assertContains( ' RECV ', $out );
+	}
+
+	/**
+	 * Test that an unreachable domain times out with a networkIdle signal being sent
+	 */
+	public function testUnreachableDomain()
+	{
+		$manager = new ChromeProcessManager( self::$defaultPort, 1 );
+
+		// Node process from a string
+		$process = new NodeProcess( Paths::getNodeScriptsPath() . '/page.js', [
+			'--url=http://255.255.255.0/'
+		], 2 );
+
+		// Enable debugging
+		$process->setEnv([
+			'LOG_LEVEL' => 'debug',
+			'DEBUG' => '*'  // To get Chrome debug logs
+		]);
+
+		// Enqueue the job
+		$manager
+			->enqueue( $process )
+			->then( function ( NodeProcess $successfulProcess ) use ( &$out )
+			{
+				$out = $successfulProcess->getErrorOutput();
+			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out ) {
+				$procFailed = true;
+			} );
+
+		$queueFailed = false;
+		$manager->then( null, function () use ( &$queueFailed ) {
+			$queueFailed = true;
+		} );
+
+		// Start processing
+		$manager->run();
+
+		$procFailed && $this->fail( "Process should not have failed" );
+		$queueFailed && $this->fail( "Queue should not have failed" );
+
+		$this->assertContains( '"networkIdle"', $out );
+		$this->assertContains( 'Navigation Timeout Exceeded', $out );
+	}
 }

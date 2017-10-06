@@ -46,7 +46,7 @@ http.createServer(function (req, res) {
     // Absolute path
     pathname = __dirname + pathname;
 
-    // based on the URL path, extract the file extention. e.g. .js, .doc, ...
+    // based on the URL path, extract the file extension. e.g. .js, .doc, ...
     const ext = path.parse(pathname).ext;
 
     // maps file extention to MIME typere

@@ -56,10 +56,8 @@ class NodeProcess extends PromiseProcess
 		'host' => '--chrome-host=',
 		'wsep' => '--chrome-wsep=',
 		'temp' => '--chrome-temp=',
+		'timeout' => '--timeout='
 	];
-
-	// TODO: timeout - Process timeout
-	// TODO: Where is the Chrome connect timeout set??
 
 	/**
 	 * NodeProcess constructor.
@@ -414,6 +412,13 @@ EOT;
 			$cmdParts[] = $this->cmdParams['wsep'] . $this->assignedWsEndpointUrl;
 		}
 
+		// Set a Chrome connection timeout that is slightly less than the
+		// node process timeout
+		if ( $timeout = $this->getTimeout() ) {
+			// Convert process timeout (s) to Chrome timeout (ms)
+			$cmdParts[] = $this->cmdParams['timeout'] . ( ($this->getTimeout() * 1e3) - 500 );
+		}
+
 		// Create the command this way instead of using the
 		// process builder because the nodeCmd must not be escaped
 		$cmd = LinuxCommands::nodeCmd . ' ';
@@ -427,6 +432,11 @@ EOT;
 		// Initial delay
 		if ( $this->initialDelay > 0 ) {
 			$cmd = "sleep {$this->initialDelay}; $cmd";
+
+			// Add more timeout for this process to account for the initial delay
+			if ( $timeout > 0 ) {
+				$this->setTimeout( $timeout + ($this->initialDelay * 1e3) );
+			}
 		}
 
 		parent::setCommandLine( $cmd );
