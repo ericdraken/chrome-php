@@ -10,6 +10,7 @@ namespace DrakenTest\ChromePHP\Queue;
 
 use Draken\ChromePHP\Queue\PromiseProcess;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Process\Exception\ProcessTimedOutException;
 
 class PromiseProcessTest extends TestCase
 {
@@ -124,5 +125,16 @@ class PromiseProcessTest extends TestCase
 				$this->addToAssertionCount(1);
 			}
 		} );
+	}
+
+	/**
+	 * Test an exception is thrown on a process timeout
+	 */
+	public function testTimeout()
+	{
+		$pp = new PromiseProcess( 'sleep 5', null, null, null, 0.1 );
+
+		$this->expectException( ProcessTimedOutException::class );
+		$pp->run();
 	}
 }

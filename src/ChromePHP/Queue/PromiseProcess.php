@@ -32,7 +32,7 @@ class PromiseProcess extends Process
 	 * @param null         $cwd
 	 * @param null         $env
 	 * @param null         $input
-	 * @param int          $timeout
+	 * @param int|float    $timeout
 	 * @param array|null   $options
 	 */
 	public function __construct(

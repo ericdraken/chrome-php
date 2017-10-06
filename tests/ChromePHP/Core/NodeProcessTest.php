@@ -13,6 +13,7 @@ use Draken\ChromePHP\Core\NodeProcess;
 use Draken\ChromePHP\Exceptions\InvalidArgumentException;
 use Draken\ChromePHP\Exceptions\RuntimeException;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Process\Exception\ProcessTimedOutException;
 
 class NodeProcessTest extends TestCase
 {
@@ -281,5 +282,65 @@ class NodeProcessTest extends TestCase
 
 			unlink( $tmp );
 		}
+	}
+
+	/**
+	 * Test that a timeout set in the child class is
+	 * reflected in the parent base class
+	 */
+	public function testTimeoutSetProperly()
+	{
+		$timeout = 0.1;
+
+		$process = new NodeProcess( 'console.log(1)', [], $timeout, false );
+		$process->setAssignedPort(1234);    // Dummy port
+
+		$this->assertFalse( $this->getObjectAttribute( $process, 'inspectMode' ) );
+
+		$process->start();
+
+		// Check that the timeout is accurate
+		$this->assertEquals( $timeout, $this->getObjectAttribute( $process, 'timeout' ) );
+	}
+
+	/**
+	 * Test that a timeout set in the child class is
+	 * reflected in the parent base class
+	 */
+	public function testInspectModeTimeoutSetProperly()
+	{
+		$timeout = 10;  // This should be overridden by inspect mode
+
+		$process = new NodeProcess( 'console.log(1)', [], $timeout, true );
+		$process->setAssignedPort(1234);    // Dummy port
+
+		$this->assertTrue( $this->getObjectAttribute( $process, 'inspectMode' ) );
+
+		$process->start();
+
+		// Check that the timeout is accurate
+		$this->assertEquals( 0, $this->getObjectAttribute( $process, 'timeout' ) );
+	}
+
+	/**
+	 * Test an exception is thrown on a process timeout
+	 */
+	public function testTimeout()
+	{
+		$process = new NodeProcess( <<<'JS'
+function sleep(ms) {
+    var unixtime_ms = new Date().getTime();
+    while(new Date().getTime() < unixtime_ms + ms) {}
+}
+sleep(5000);	// Node script will try to run for 5 seconds
+JS
+, [], 0.1, false ); // But the timeout is 0.1 seconds
+
+		$process->setAssignedPort(1234);    // Dummy port
+
+		$this->assertFalse( $this->getObjectAttribute( $process, 'inspectMode' ) );
+
+		$this->expectException( ProcessTimedOutException::class );
+		$process->run();
 	}
 }

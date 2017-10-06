@@ -40,9 +40,6 @@ class NodeProcess extends PromiseProcess
 	/** @var string */
 	private $nodeScriptString = '';
 
-	/** @var int */
-	private $timeout = 0;
-
 	/** @var bool */
 	private $inspectMode = false;
 
@@ -61,6 +58,9 @@ class NodeProcess extends PromiseProcess
 		'temp' => '--chrome-temp=',
 	];
 
+	// TODO: timeout - Process timeout
+	// TODO: Where is the Chrome connect timeout set??
+
 	/**
 	 * NodeProcess constructor.
 	 * Create a special PromiseProcess that takes either a NodeJS script path,
@@ -69,21 +69,17 @@ class NodeProcess extends PromiseProcess
 	 *
 	 * @param string $script
 	 * @param array $args
-	 * @param int $timeout
+	 * @param float $timeout
 	 * @param bool $inspect
 	 * @param bool $pipeStderrToStdout
 	 */
 	public function __construct(
 		string $script = null,
 		array $args = [],
-		int $timeout = 300,
+		float $timeout = 300,
 		bool $inspect = false,
 		bool $pipeStderrToStdout = false
 	) {
-		if ( $timeout < 0 ) {
-			$timeout = 0;
-		}
-
 		if ( $script )
 		{
 			// Check if the $script is a path or the script to execute
@@ -100,7 +96,6 @@ class NodeProcess extends PromiseProcess
 
 		$this->inspectMode = $inspect;
 		$this->userScriptArgs = $args;
-		$this->timeout = $timeout;
 		$this->pipeStderrToStdout = $pipeStderrToStdout;
 
 		// Register shutdown function to cleanup any temp files.
@@ -111,7 +106,11 @@ class NodeProcess extends PromiseProcess
 			$this->cleanup();
 		} );
 
+		// Call the parent constructor
 		parent::__construct( '' );
+
+		// Be sure to set the timeout parameter as well
+		parent::setTimeout( $timeout );
 	}
 
 	/**
@@ -129,7 +128,8 @@ class NodeProcess extends PromiseProcess
 	/**
 	 * @return int
 	 */
-	public function getAssignedPort(): int {
+	public function getAssignedPort(): int
+	{
 		return $this->assignedPort;
 	}
 
@@ -167,7 +167,8 @@ class NodeProcess extends PromiseProcess
 	/**
 	 * @return string
 	 */
-	public function getAssignedWsEndpointUrl(): string {
+	public function getAssignedWsEndpointUrl(): string
+	{
 		return $this->assignedWsEndpointUrl;
 	}
 
@@ -187,7 +188,8 @@ class NodeProcess extends PromiseProcess
 	/**
 	 * @return string
 	 */
-	public function getAssignedWorkingFolder(): string {
+	public function getAssignedWorkingFolder(): string
+	{
 		return $this->assignedWorkingFolder;
 	}
 
@@ -197,7 +199,8 @@ class NodeProcess extends PromiseProcess
 	 * additional params from the argv property
 	 * @param string $nodeScriptString
 	 */
-	public function setRawNodeScriptString( string $nodeScriptString )	{
+	public function setRawNodeScriptString( string $nodeScriptString )
+	{
 		$this->nodeScriptString = $nodeScriptString;
 	}
 
@@ -236,7 +239,8 @@ EOT;
 	/**
 	 * @return string
 	 */
-	public function getNodeScriptString(): string {
+	public function getNodeScriptString(): string
+	{
 		return $this->nodeScriptString;
 	}
 
@@ -313,13 +317,6 @@ EOT;
 	/**
 	 * {@inheritdoc}
 	 */
-	public function setTimeout( $timeout ) {
-		$this->timeout = $timeout;
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
 	public function start( callable $callback = null )
 	{
 		$this->checkSettings();
@@ -363,13 +360,9 @@ EOT;
 			throw new RuntimeException("No script path or string supplied. Nothing to do");
 		}
 
-		// Timeouts
+		// No timeouts in inspector mode
 		if ( $this->inspectMode ) {
-			// No timeouts in inspector mode
 			parent::setTimeout(0);
-		} else {
-			// Set the user-supplied process timeout
-			parent::setTimeout( $this->timeout );
 		}
 	}
 
