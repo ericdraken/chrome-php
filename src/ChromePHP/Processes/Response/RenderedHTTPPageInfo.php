@@ -19,6 +19,12 @@ class RenderedHTTPPageInfo
 	/** @var string */
 	protected $requestUrl = "";
 
+	/** @var string */
+	protected $resolvedUrl = "";
+
+	/** @var bool */
+	protected $didRedirect = false;
+
 	/** @var HTTPResponseInfo */
 	protected $lastResponse;
 
@@ -71,6 +77,22 @@ class RenderedHTTPPageInfo
 	public function getRequestUrl(): string
 	{
 		return $this->requestUrl;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getResolvedUrl(): string
+	{
+		return $this->resolvedUrl;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function didRedirect(): bool
+	{
+		return $this->didRedirect;
 	}
 
 	/**
@@ -203,6 +225,10 @@ class RenderedHTTPPageInfo
 			// Primitives
 			$this->{$key} = $value;
 		}
+
+		// Add more details
+		$this->resolvedUrl = $this->lastResponse ? $this->lastResponse->getUrl() : $this->requestUrl;
+		$this->didRedirect = !! count( $this->redirectChain );
 
 		return $this;
 	}
