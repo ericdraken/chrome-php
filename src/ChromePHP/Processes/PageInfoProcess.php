@@ -57,6 +57,7 @@ class PageInfoProcess extends NodeProcess
 		$args = array_filter( $args, function ( $arg ) {
 			return
 				stripos( $arg, '--url=' ) !== 0 &&
+				stripos( $arg, '--timeout=' ) !== 0 &&
 				stripos( $arg, '--emulation=' ) !== 0;
 		} );
 
