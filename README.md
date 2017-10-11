@@ -18,6 +18,11 @@ The most common use cases are:
 * Monitor web infrastructure and partner sites
 * Follow mixed redirect chains (301, 302, meta-refresh, document.location, etc)
 
+Examples
+--------
+
+See the `/examples` folder for examples and detailed comments.
+
 Installation
 ------------
 
