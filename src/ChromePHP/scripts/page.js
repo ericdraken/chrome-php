@@ -148,7 +148,7 @@ let mainRequests = [];
         "use strict";
 
         // Skip data-uri images
-        if (request.url.indexOf('data:image') === 0)
+        if (request.url.match(/(^data:image\/.*)/i))
             return;
 
         // Keep track of request objects
