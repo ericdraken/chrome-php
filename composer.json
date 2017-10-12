@@ -1,7 +1,7 @@
 {
   "name": "ericdraken/chrome-php",
   "description": "Parallel headless Chrome interaction via PHP",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "keywords": ["chrome", "headless", "php"],
   "homepage": "http://github.com/ericdraken/chrome-php",
   "type": "library",
