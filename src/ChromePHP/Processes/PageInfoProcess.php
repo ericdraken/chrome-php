@@ -8,11 +8,9 @@
 
 namespace Draken\ChromePHP\Processes;
 
-use Draken\ChromePHP\Core\LoggableBase;
 use Draken\ChromePHP\Core\NodeProcess;
 use Draken\ChromePHP\Emulations\Emulation;
 use Draken\ChromePHP\Exceptions\HttpResponseException;
-use Draken\ChromePHP\Exceptions\RuntimeException;
 use Draken\ChromePHP\Processes\Response\RenderedHTTPPageInfo;
 use Draken\ChromePHP\Processes\Traits\ProcessTraits;
 use Draken\ChromePHP\Utils\Paths;
@@ -87,7 +85,8 @@ class PageInfoProcess extends NodeProcess
 			$this->promise,
 			function( PageInfoProcess $process ) use ( &$successCheckCallback ) {
 
-			$process->renderedPageInfoObj = $this->processNodeResults();
+			$obj = $this->tempFileJsonToObj();
+			$this->renderedPageInfoObj = new RenderedHTTPPageInfo( $obj );
 
 			// Was the initial request successful?
 			if ( $process->renderedPageInfoObj->isOk() )
@@ -103,31 +102,5 @@ class PageInfoProcess extends NodeProcess
 				throw new HttpResponseException( "Didn't get a 2XX response" );
 			}
 		} );
-	}
-
-	/**
-	 * Retrieve the NodeJS temp file JSON data and
-	 * inflate it back into an object
-	 *
-	 * @return RenderedHTTPPageInfo
-	 */
-	protected function processNodeResults(): RenderedHTTPPageInfo
-	{
-		// Winston debug logs
-		LoggableBase::logger()->info( "NodeJS debug logs:" . PHP_EOL . $this->getErrorOutput() );
-
-		$jsonFile = trim( $this->getOutput() );
-
-		// Verify the file
-		if ( ! file_exists( $jsonFile ) ) {
-			throw new RuntimeException("Couldn't open the JSON file: " . substr( $jsonFile, 0, 50));
-		}
-		$contents = file_get_contents( $jsonFile );
-
-		if ( ! $obj = json_decode( $contents, false ) ) {
-			throw new RuntimeException("Couldn't parse the JSON contents: " . substr( $contents, 0, 50) . '...');
-		}
-
-		return new RenderedHTTPPageInfo( $obj );
 	}
 }

@@ -13,6 +13,7 @@ use Draken\ChromePHP\Core\NodeProcess;
 use Draken\ChromePHP\Emulations\Devices\DefaultDesktop;
 use Draken\ChromePHP\Emulations\Emulation;
 use Draken\ChromePHP\Exceptions\InvalidArgumentException;
+use Draken\ChromePHP\Exceptions\RuntimeException;
 use Draken\ChromePHP\Queue\PromiseProxy;
 use GuzzleHttp\Promise\Promise;
 
@@ -90,5 +91,31 @@ trait ProcessTraits
 
 		// Assign the process to this proxy
 		$promise->setProcess( $process );
+	}
+
+	/**
+	 * Retrieve the NodeJS temp file JSON data and
+	 * inflate it back into an object
+	 *
+	 * @return \stdClass
+	 */
+	protected function tempFileJsonToObj(): \stdClass
+	{
+		// Winston debug logs
+		LoggableBase::logger()->info( "NodeJS debug logs:" . PHP_EOL . $this->getErrorOutput() );
+
+		$jsonFile = trim( $this->getOutput() );
+
+		// Verify the file
+		if ( ! file_exists( $jsonFile ) ) {
+			throw new RuntimeException("Couldn't open the JSON file: " . substr( $jsonFile, 0, 50));
+		}
+		$contents = file_get_contents( $jsonFile );
+
+		if ( ! $obj = json_decode( $contents, false ) ) {
+			throw new RuntimeException("Couldn't parse the JSON contents: " . substr( $contents, 0, 50) . '...');
+		}
+
+		return $obj;
 	}
 }
