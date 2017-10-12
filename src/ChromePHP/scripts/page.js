@@ -437,25 +437,25 @@ let mainRequests = [];
 
     }).then(async () => {
 
-    logger.debug('Closing tab');
+        logger.debug('Closing tab');
 
-    // Close the page, not the browser
-    if (page) {
-        await page.removeAllListeners();
-        await page.close();
-    }
+        // Close the page, not the browser
+        if (page) {
+            await page.removeAllListeners();
+            await page.close();
+        }
 
-    // Write the serialized object to disk and return the path
-    let path = temp+'/'+process.pid+'.json';
-    fs.writeFileSync( path, JSON.stringify(results), { encoding: 'utf8' } );
+        // Write the serialized object to disk and return the path
+        let path = temp+'/'+process.pid+'.json';
+        fs.writeFileSync( path, JSON.stringify(results), { encoding: 'utf8' } );
 
-    logger.info('Saved JSON to %s', path);
+        logger.info('Saved JSON to %s', path);
 
-    // Send back the JSON file path
-    console.log(path);
+        // Send back the JSON file path
+        console.log(path);
 
-    process.exit(exitCode);
-});
+        process.exit(exitCode);
+    });
 
 process.on('SIGINT', () => {
     logger.error('SIGINT received');
