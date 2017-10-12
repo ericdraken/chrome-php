@@ -10,17 +10,17 @@ namespace Draken\ChromePHP\Processes;
 
 use Draken\ChromePHP\Core\LoggableBase;
 use Draken\ChromePHP\Core\NodeProcess;
-use Draken\ChromePHP\Emulations\Devices\DefaultDesktop;
 use Draken\ChromePHP\Emulations\Emulation;
 use Draken\ChromePHP\Exceptions\HttpResponseException;
-use Draken\ChromePHP\Exceptions\InvalidArgumentException;
 use Draken\ChromePHP\Exceptions\RuntimeException;
 use Draken\ChromePHP\Processes\Response\RenderedHTTPPageInfo;
-use Draken\ChromePHP\Queue\PromiseProxy;
+use Draken\ChromePHP\Processes\Traits\ProcessTraits;
 use Draken\ChromePHP\Utils\Paths;
 
 class PageInfoProcess extends NodeProcess
 {
+	use ProcessTraits;
+
 	/** @var RenderedHTTPPageInfo */
 	protected $renderedPageInfoObj;
 
@@ -40,26 +40,8 @@ class PageInfoProcess extends NodeProcess
 	 */
 	public function __construct( string $url, array $args = [], Emulation $emulation = null, $timeout = 10 )
 	{
-		if ( empty( $url ) ) {
-			throw new InvalidArgumentException( "Supplied URL is empty" );
-		}
-
-		if ( ! filter_var( $url, FILTER_VALIDATE_URL ) ) {
-			throw new InvalidArgumentException( "Invalid URL. Got: $url" );
-		}
-
-		$this->url = $url;
-
-		// Register the device emulation or a default desktop emulation
-		$this->emulation = is_null( $emulation ) ? new DefaultDesktop() : $emulation;
-
-		// Filter out any reserved params supplied by the user
-		$args = array_filter( $args, function ( $arg ) {
-			return
-				stripos( $arg, '--url=' ) !== 0 &&
-				stripos( $arg, '--timeout=' ) !== 0 &&
-				stripos( $arg, '--emulation=' ) !== 0;
-		} );
+		// Validate and set args
+		$this->processArgs( $url, $args, $emulation );
 
 		// Merge the args array with the mandatory arguments,
 		// but always use the params supplied below
@@ -100,54 +82,27 @@ class PageInfoProcess extends NodeProcess
 	 */
 	protected function setupPromiseProxyResolver( callable $successCheckCallback = null )
 	{
-		// Set up the wait function
-		$this->promise = new PromiseProxy( function () use ( &$successCheckCallback )
-		{
-			if ($this->isStarted()) {
-				$this->wait();
-			}
+		$this->setupInternalPromiseProxyResolver(
+			$this,
+			$this->promise,
+			function( PageInfoProcess $process ) use ( &$successCheckCallback ) {
 
-			if ( $this->isSuccessful() )
+			$process->renderedPageInfoObj = $this->processNodeResults();
+
+			// Was the initial request successful?
+			if ( $process->renderedPageInfoObj->isOk() )
 			{
-				try
-				{
-					$this->renderedPageInfoObj = $this->processNodeResults();
-
-					// Was the initial request successful?
-					if ( $this->renderedPageInfoObj->isOk() )
-					{
-						// Test for another property to determine if really successful.
-						// Throw an exception here to reject the promise
-						if ( is_callable( $successCheckCallback ) ) {
-							call_user_func( $successCheckCallback, $this->renderedPageInfoObj );
-						}
-
-						$this->promise->resolve( $this );
-					} else {
-						// The response was not ok
-						$this->setLastException( new HttpResponseException( "Didn't get a 2XX response" ) );
-						$this->promise->reject( $this );
-					}
+				// Test for another property to determine if really successful.
+				// Throw an exception here to reject the promise
+				if ( is_callable( $successCheckCallback ) ) {
+					call_user_func( $successCheckCallback, $process->renderedPageInfoObj );
 				}
-				catch ( \Exception $exception )
-				{
-					// Something went wrong parsing the response
-					$this->setLastException( $exception );
-					$this->promise->reject( $this );
-				}
-			}
-			else
-			{
-				// Something went wrong in the process
-				LoggableBase::logger()->error( $this->getLastException() && $this->getLastException()->getMessage() );
-				LoggableBase::logger()->error( "NodeJS debug logs:" . PHP_EOL . $this->getErrorOutput() );
-
-				$this->promise->reject( $this );
+			} else {
+				// The response was not ok.
+				// Throw an exception to reject the promise
+				throw new HttpResponseException( "Didn't get a 2XX response" );
 			}
 		} );
-
-		// Assign the process to this proxy
-		$this->promise->setProcess( $this );
 	}
 
 	/**
@@ -156,7 +111,7 @@ class PageInfoProcess extends NodeProcess
 	 *
 	 * @return RenderedHTTPPageInfo
 	 */
-	private function processNodeResults(): RenderedHTTPPageInfo
+	protected function processNodeResults(): RenderedHTTPPageInfo
 	{
 		// Winston debug logs
 		LoggableBase::logger()->info( "NodeJS debug logs:" . PHP_EOL . $this->getErrorOutput() );
