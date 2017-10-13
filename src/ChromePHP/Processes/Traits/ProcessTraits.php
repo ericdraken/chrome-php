@@ -29,6 +29,9 @@ trait ProcessTraits
 			throw new InvalidArgumentException( "Invalid URL. Got: $url" );
 		}
 
+		// Save the URL
+		$this->url = $url;
+
 		// Register the device emulation or a default desktop emulation
 		$this->emulation = is_null( $emulation ) ? new DefaultDesktop() : $emulation;
 
