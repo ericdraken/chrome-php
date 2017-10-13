@@ -99,6 +99,7 @@ class PageInfoProcessTest extends TestCase
 		$args = $this->getObjectAttribute( $process, 'userScriptArgs' );
 
 		$this->assertContains( "--url=$url", $args );
+		$this->assertEquals( $url, $process->getUrl() );
 	}
 
 	/**
