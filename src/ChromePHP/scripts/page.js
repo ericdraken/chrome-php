@@ -148,7 +148,7 @@ let mainRequests = [];
         "use strict";
 
         // Skip data-uri images
-        if (request.url.indexOf('data:image') === 0)
+        if (request.url.match(/(^data:image\/.*)/i))
             return;
 
         // Keep track of request objects
@@ -233,7 +233,7 @@ let mainRequests = [];
         // Also, subtract the idle timeout time
         let diff = process.hrtime(t0);
         results.loadTime = (((diff[0] * 1e9) + diff[1]) - (networkIdleTimeout * 1e6)) / 1e6;  // ns --> ms
-        logger.debug('Page loaded in %s s', results.loadTime / 1000.0);
+        logger.debug('Page loaded in %ss', results.loadTime / 1000.0);
         return response;
 
     }).then((response) => {
@@ -437,25 +437,25 @@ let mainRequests = [];
 
     }).then(async () => {
 
-    logger.debug('Closing tab');
+        logger.debug('Closing tab');
 
-    // Close the page, not the browser
-    if (page) {
-        await page.removeAllListeners();
-        await page.close();
-    }
+        // Close the page, not the browser
+        if (page) {
+            await page.removeAllListeners();
+            await page.close();
+        }
 
-    // Write the serialized object to disk and return the path
-    let path = temp+'/'+process.pid+'.json';
-    fs.writeFileSync( path, JSON.stringify(results), { encoding: 'utf8' } );
+        // Write the serialized object to disk and return the path
+        let path = temp+'/'+process.pid+'.json';
+        fs.writeFileSync( path, JSON.stringify(results), { encoding: 'utf8' } );
 
-    logger.info('Saved JSON to %s', path);
+        logger.info('Saved JSON to %s', path);
 
-    // Send back the JSON file path
-    console.log(path);
+        // Send back the JSON file path
+        console.log(path);
 
-    process.exit(exitCode);
-});
+        process.exit(exitCode);
+    });
 
 process.on('SIGINT', () => {
     logger.error('SIGINT received');

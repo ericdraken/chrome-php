@@ -58,13 +58,13 @@ class ScreenshotProcess extends PageInfoProcess
 		]), $emulations[0], $timeout);
 
 		// Setup a new wait function with an additional success check function
-		$this->setupPromiseProxyResolver( [ $this, 'checkScreenshotFitness' ] );
+		$this->setupPromiseProxyResolver( [ $this, 'addScreenshotObjects' ] );
 	}
 
 	/**
 	 * @param RenderedHTTPPageInfo $renderedPageInfoObj
 	 */
-	protected function checkScreenshotFitness( RenderedHTTPPageInfo $renderedPageInfoObj )
+	protected function addScreenshotObjects( RenderedHTTPPageInfo $renderedPageInfoObj )
 	{
 		$results = $renderedPageInfoObj->getVmcodeResults();
 		if ( ! is_array ( $results ) || ! count( $results ) ) {
