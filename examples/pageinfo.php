@@ -27,6 +27,10 @@ $promise = $manager->enqueue( $process );
 // more processes can be added to the queue here
 $promise->then( function ( PageInfoProcess $process ) {
 
+	// Display logs
+	$logs = $process->getErrorOutput();
+	print_r( $logs );
+
 	// 2XX response
 	var_dump( $process->getRenderedPageInfoObj() );
 

@@ -20,7 +20,7 @@ $manager = new ChromeProcessManager(9222, 2 );
 // Set '--savecontent=true' to save the response bodies
 // of each request in the HAR as base64 text
 $process = new HarProcess('https://github.com', [
-	'--savecontent=false'
+	'--savecontent=0'
 ]);
 
 // Enqueue the process
@@ -30,6 +30,10 @@ $promise = $manager->enqueue( $process );
 // is where further processing can be done, for example,
 // more processes can be added to the queue here
 $promise->then( function ( HarProcess $process ) {
+
+	// Display logs
+	$logs = $process->getErrorOutput();
+	print_r( $logs );
 
 	// 2XX response
 	var_export( $process->getHarInfo()->getHarObj() );

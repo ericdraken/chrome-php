@@ -53,7 +53,7 @@ $promise->then( function ( PageInfoProcess $process ) {
 	// NOTE: All debugging and console output happens
 	// on stderr because the stdout is reserved for
 	// returning the page info JSON results file path
-	var_export( $process->getErrorOutput() );
+	print_r( $process->getErrorOutput() );
 
 }, function ( PageInfoProcess $failedProcess ) {
 

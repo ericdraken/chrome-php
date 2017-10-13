@@ -93,10 +93,10 @@ CHC.run([url], {
 }).on('done', (url) => {
     logger.debug('Loaded: %s', url);
 }).on('fail', (url, err) => {
-    logger.debug('Failed: %s', url);
-}).on('har', (har) => {
+    logger.debug('Failed: %s, with error: %s', url, err);
+}).on('har', async (har) => {
 
-    // No extra comments in HAR
+    // No extra comments in HAR please
     delete har.log.creator.comment;
 
     const fs = require('fs');
@@ -112,29 +112,11 @@ CHC.run([url], {
     console.log(path);
     exitCode = 0;
 
+    logger.debug('Finished HAR');
 });
-
-// .catch((err) => {
-//
-//     // Clean logging
-//     logger.error('UncaughtException:', err.message);
-//
-// }).then(async () => {
-//
-//     // TODO: Close tab code
-//     logger.debug('Closing tab');
-//
-//     process.exit(exitCode);
-// });
-
-logger.debug('Finished HAR');
 
 process.on('SIGINT', () => {
     logger.error('SIGINT received');
-
-    // TODO: Page close code
-    //if (page) page.close();
-
     process.exit(exitCode);
 });
 

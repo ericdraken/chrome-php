@@ -32,6 +32,10 @@ $promise = $manager->enqueue( $process );
 // more processes can be added to the queue here
 $promise->then( function ( ScreenshotProcess $process ) use ( &$buffer ) {
 
+	// Display logs
+	$logs = $process->getErrorOutput();
+	print_r( $logs );
+
 	// 2XX response
 	$screenshots = $process->getScreenshots();
 	$screenshotInfo = current( $screenshots );

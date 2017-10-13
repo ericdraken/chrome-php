@@ -47,6 +47,12 @@ class HarInfo
 		$log = $obj->log;
 		$entries = $log->entries;
 
+		// This could be a default object instantiation
+		if ( ! count( $entries ) )
+		{
+			return $this;
+		}
+
 		// Main entry
 		$mainEntry = $entries[0];
 		$mainRequest = $mainEntry->request;
