@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "bluebird": "^3.5.1",
+    "chrome-har-capturer": "^0.10.3",
     "chrome-remote-interface": "^0.23.3",
     "gm": "^1.23.0",
     "image-size": "^0.6.1",

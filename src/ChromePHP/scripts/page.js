@@ -233,7 +233,7 @@ let mainRequests = [];
         // Also, subtract the idle timeout time
         let diff = process.hrtime(t0);
         results.loadTime = (((diff[0] * 1e9) + diff[1]) - (networkIdleTimeout * 1e6)) / 1e6;  // ns --> ms
-        logger.debug('Page loaded in %s s', results.loadTime / 1000.0);
+        logger.debug('Page loaded in %ss', results.loadTime / 1000.0);
         return response;
 
     }).then((response) => {
