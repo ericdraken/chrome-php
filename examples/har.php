@@ -17,10 +17,12 @@ $manager = new ChromeProcessManager(9222, 2 );
 
 // Specialized NodeJS process to visit a website
 // and return detailed information about it.
-// Set '--savecontent=true' to save the response bodies
+// Set '--savecontent=1' to save the response bodies
 // of each request in the HAR as base64 text
+// Set '--ignorecerterrors=1' to ignore TLS certificate errors
 $process = new HarProcess('https://github.com', [
-	'--savecontent=0'
+	'--savecontent=0',
+	'--ignorecerterrors=1'
 ]);
 
 // Enqueue the process

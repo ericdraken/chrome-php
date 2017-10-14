@@ -31,8 +31,10 @@ JS;
 // and return detailed information about it. By adding '--vmcode'
 // as an argument, this code will run in the context of
 // the same browser page
+// Set '--ignorecerterrors=1' to ignore TLS certificate errors
 $process = new PageInfoProcess('https://github.com', [
-	'--vmcode=' . $code
+	'--vmcode=' . $code,
+	'--ignorecerterrors=0'
 ]);
 
 // Enable logging to see a trace of all network

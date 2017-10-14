@@ -28,7 +28,7 @@ const logger = loggerFactory();
 const url = argv.url || false;
 const emulation = argv.emulation || false;
 const timeout = argv.timeout || 10000; // 10s
-const ignoreSSLErrors = argv.ignoressl || false;
+const ignoreCertErrors = argv.ignorecerterrors || false;
 const saveContent = argv.savecontent || false;
 
 // Check the URL
@@ -70,6 +70,22 @@ async function preHook(url, client) {
         await Network.setUserAgentOverride({
             userAgent: userAgent
         });
+    }
+
+    // Bypass TLS errors
+    if (ignoreCertErrors) {
+        const {Security} = client;
+        // Ignore all certificate errors
+        Security.certificateError(({eventId}) => {
+            Security.handleCertificateError({
+                eventId,
+                action: 'continue'
+            });
+        });
+
+        // Enable the override
+        await Security.enable();
+        await Security.setOverrideCertificateErrors({override: true});
     }
 }
 

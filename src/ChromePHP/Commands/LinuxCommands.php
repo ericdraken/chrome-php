@@ -112,6 +112,12 @@ EOT;
 		// Incognitio mode each time
 		'--incognito',
 
+		// SSL
+		'--allow-insecure-localhost',               // localhost over TLS with self-signed cert
+		// '--allow-running-insecure-content',      // See the next flag
+		'--enable-strict-mixed-content-checking',   // Block all HTTP requests from HTTPS contexts
+		// '--ignore-certificate-errors',           // Removed from Chromium
+
 		// Standard settings
 		'--headless',
 		'--no-first-run',

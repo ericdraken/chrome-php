@@ -22,7 +22,10 @@ $emulation = new IPhone6Emulation();
 
 // Specialized NodeJS process to visit a website
 // and take a screenshot of it
-$process = new ScreenshotProcess('https://github.com', [ $emulation ] );
+// Set '--ignorecerterrors=1' to ignore TLS certificate errors
+$process = new ScreenshotProcess('https://github.com', [ $emulation ], [
+	'--ignorecerterrors=0'
+] );
 
 // Enqueue the process
 $promise = $manager->enqueue( $process );

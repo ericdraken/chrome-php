@@ -32,7 +32,7 @@ const emulation = argv.emulation || false;
 const networkIdleTimeout = argv.idletime || 500; // 0.5s
 const timeout = argv.timeout || 10000; // 10s
 const vmcode = argv.vmcode || false;
-const ignoreSSLErrors = argv.ignoressl || false;
+const ignoreCertErrors = argv.ignorecerterrors || false;
 
 // Check the URL
 if (!url) {
@@ -83,7 +83,7 @@ let mainRequests = [];
     logger.debug( 'Connecting to %s', wsep );
     browser = await puppeteer.connect({
         browserWSEndpoint: wsep,
-        ignoreHTTPSErrors: ignoreSSLErrors
+        ignoreHTTPSErrors: ignoreCertErrors
     });
     logger.debug( 'Connected' );
 

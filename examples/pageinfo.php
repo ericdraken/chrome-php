@@ -17,7 +17,10 @@ $manager = new ChromeProcessManager(9222, 2 );
 
 // Specialized NodeJS process to visit a website
 // and return detailed information about it
-$process = new PageInfoProcess('https://github.com');
+// Set '--ignorecerterrors=1' to ignore TLS certificate errors
+$process = new PageInfoProcess('https://github.com', [
+	'--ignorecerterrors=0'
+]);
 
 // Enqueue the process
 $promise = $manager->enqueue( $process );
