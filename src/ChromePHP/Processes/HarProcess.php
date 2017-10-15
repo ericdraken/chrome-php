@@ -72,6 +72,11 @@ class HarProcess extends NodeProcess
 				$obj = $this->tempFileJsonToObj();
 				$process->harInfo = new HarInfo( $obj );
 
+				// Throw any network related error
+				if ( strpos( $process->harInfo->getLastError(), 'ERR_' ) !== false ) {
+					throw new HttpResponseException( $this->harInfo->getLastError() );
+				}
+
 				// Was the initial request successful?
 				if ( $process->harInfo->isOk() )
 				{

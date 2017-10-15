@@ -27,6 +27,9 @@ class HarInfo
 	/** @var string */
 	private $redirectURL = '';
 
+	/** @var string */
+	private $lastError = '';
+
 	/**
 	 * HarInfo constructor.
 	 *
@@ -41,6 +44,13 @@ class HarInfo
 
 		if ( ! property_exists( $obj, 'log' ) ) {
 			throw new RuntimeException( "Har property 'log' missing from object" );
+		}
+
+		// Get the last error, if present
+		if ( property_exists( $obj, 'lastError' ) )
+		{
+			$this->lastError = $obj->lastError ?? '';
+			unset( $obj->lastError );
 		}
 
 		// Get HAR components
@@ -140,5 +150,23 @@ class HarInfo
 	public function isOk(): bool
 	{
 		return $this->status >= 200 && $this->status <= 299;
+	}
+
+	/**
+	 * Return if there are any page errors
+	 * @return bool
+	 */
+	public function hasPageErrors(): bool
+	{
+		return ! empty( $this->lastError );
+	}
+
+	/**
+	 * Return the last (and only) halting page error
+	 * @return string
+	 */
+	public function getLastError(): string
+	{
+		return $this->lastError;
 	}
 }

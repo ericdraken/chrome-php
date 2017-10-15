@@ -88,7 +88,9 @@ class RenderedHTTPPageInfo
 	public function getLastCertError(): string
 	{
 		$tlsErrors = array_filter( $this->pageErrors, function ( $entry ) {
-			return strpos( $entry, 'ERR_CERT_' ) !== false;
+			return
+				strpos( $entry, 'ERR_CERT_' ) !== false ||
+				strpos( $entry, 'ERR_INSECURE_' ) !== false;
 		} );
 
 		return count( $tlsErrors ) ? current( $tlsErrors ) : '';

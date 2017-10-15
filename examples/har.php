@@ -22,7 +22,7 @@ $manager = new ChromeProcessManager(9222, 2 );
 // Set '--ignorecerterrors=1' to ignore TLS certificate errors
 $process = new HarProcess('https://github.com', [
 	'--savecontent=0',
-	'--ignorecerterrors=1'
+	'--ignorecerterrors=0'
 ]);
 
 // Enqueue the process
@@ -42,7 +42,11 @@ $promise->then( function ( HarProcess $process ) {
 
 }, function ( HarProcess $failedProcess ) {
 
-	// 4XX - 5XX response or timeout
+	$logs = $failedProcess->getErrorOutput();
+
+	$lastError = $failedProcess->getHarInfo()->getLastError();
+
+	// 4XX - 5XX response, TLS error, or timeout
 	var_dump( $failedProcess->getLastException() );
 
 } );

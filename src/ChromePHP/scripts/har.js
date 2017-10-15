@@ -92,6 +92,7 @@ async function preHook(url, client) {
 logger.debug('Starting HAR');
 
 let exitCode = 1;
+let lastError = null;
 
 // Capture a HAR
 CHC.run([url], {
@@ -109,11 +110,19 @@ CHC.run([url], {
 }).on('done', (url) => {
     logger.debug('Loaded: %s', url);
 }).on('fail', (url, err) => {
-    logger.debug('Failed: %s, with error: %s', url, err);
+    // Add this error to the HAR object
+    lastError = err.message;
+    logger.error('Failed: %s, with error: %s', url, err);
 }).on('har', async (har) => {
 
     // No extra comments in HAR please
     delete har.log.creator.comment;
+
+    // Temporarily hold this error as well (it will be removed from the final HAR)
+    har.lastError = lastError;
+    if (lastError) {
+        har.log.comment = lastError;
+    }
 
     const fs = require('fs');
     const json = JSON.stringify(har, null, 4);
