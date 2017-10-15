@@ -85,22 +85,27 @@ class PageInfoProcess extends NodeProcess
 			$this->promise,
 			function( PageInfoProcess $process ) use ( &$successCheckCallback ) {
 
-			$obj = $this->tempFileJsonToObj();
-			$this->renderedPageInfoObj = new RenderedHTTPPageInfo( $obj );
+				$obj = $this->tempFileJsonToObj();
+				$this->renderedPageInfoObj = new RenderedHTTPPageInfo( $obj );
 
-			// Was the initial request successful?
-			if ( $process->renderedPageInfoObj->isOk() )
-			{
-				// Test for another property to determine if really successful.
-				// Throw an exception here to reject the promise
-				if ( is_callable( $successCheckCallback ) ) {
-					call_user_func( $successCheckCallback, $process->renderedPageInfoObj );
+				// Check for a cert error
+				if ( $this->renderedPageInfoObj->hasCertError() ) {
+					throw new HttpResponseException( $this->renderedPageInfoObj->getLastCertError() );
 				}
-			} else {
-				// The response was not ok.
-				// Throw an exception to reject the promise
-				throw new HttpResponseException( "Didn't get a 2XX response. Got {$process->renderedPageInfoObj->getStatus()}" );
-			}
+
+				// Was the initial request successful?
+				if ( $process->renderedPageInfoObj->isOk() )
+				{
+					// Test for another property to determine if really successful.
+					// Throw an exception here to reject the promise
+					if ( is_callable( $successCheckCallback ) ) {
+						call_user_func( $successCheckCallback, $process->renderedPageInfoObj );
+					}
+				} else {
+					// The response was not ok.
+					// Throw an exception to reject the promise
+					throw new HttpResponseException( "Didn't get a 2XX response. Got {$process->renderedPageInfoObj->getStatus()}" );
+				}
 		} );
 	}
 }

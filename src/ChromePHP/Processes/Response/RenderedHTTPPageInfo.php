@@ -64,6 +64,37 @@ class RenderedHTTPPageInfo
 	}
 
 	/**
+	 * @return bool
+	 */
+	public function hasPageErrors(): bool
+	{
+		return count( $this->pageErrors ) > 0;
+	}
+
+	/**
+	 * Check if this page had a certificate error.
+	 * This will always be false if insecure requests are allowed
+	 * @return bool
+	 */
+	public function hasCertError(): bool
+	{
+		return ! empty( $this->getLastCertError() );
+	}
+
+	/**
+	 * Return the last certificate error
+	 * @return string
+	 */
+	public function getLastCertError(): string
+	{
+		$tlsErrors = array_filter( $this->pageErrors, function ( $entry ) {
+			return strpos( $entry, 'ERR_CERT_' ) !== false;
+		} );
+
+		return count( $tlsErrors ) ? current( $tlsErrors ) : '';
+	}
+
+	/**
 	 * @return int
 	 */
 	public function getStatus(): int

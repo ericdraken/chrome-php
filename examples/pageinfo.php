@@ -39,7 +39,13 @@ $promise->then( function ( PageInfoProcess $process ) {
 
 }, function ( PageInfoProcess $failedProcess ) {
 
-	// 4XX - 5XX response or timeout
+	$hasCertError = $failedProcess->getRenderedPageInfoObj()->hasCertError();
+
+	// Display logs
+	$logs = $failedProcess->getErrorOutput();
+	print_r( $logs );
+
+	// 4XX - 5XX response, TLS error, or timeout
 	var_dump( $failedProcess->getLastException() );
 
 } );

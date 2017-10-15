@@ -334,7 +334,7 @@ let mainRequests = [];
         // * the main resource failed to load.
 
         results.pageErrors.push(err.message);
-        logger.error('Navigation error:', err.message);
+        logger.error(err.message);
     });
 
     logger.debug('There were %s requests', requests.size);
