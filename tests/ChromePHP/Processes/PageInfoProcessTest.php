@@ -9,7 +9,6 @@
 namespace DrakenTest\ChromePHP\Processes;
 
 use Draken\ChromePHP\Core\ChromeProcessManager;
-use Draken\ChromePHP\Core\NodeProcess;
 use Draken\ChromePHP\Emulations\Devices\IPhone6Emulation;
 use Draken\ChromePHP\Exceptions\InvalidArgumentException;
 use Draken\ChromePHP\Processes\PageInfoProcess;
@@ -98,7 +97,7 @@ class PageInfoProcessTest extends ProcessFixture
 			{
 				$obj = $successfulProcess->getRenderedPageInfoObj();
 
-			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out )
+			}, function ( PageInfoProcess $failedProcess ) use ( &$procFailed, &$out )
 			{
 				$out = $failedProcess->getErrorOutput();
 				$procFailed = true;
@@ -136,7 +135,7 @@ class PageInfoProcessTest extends ProcessFixture
 			->enqueue( $process )
 			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj ) {
 				$obj = $successfulProcess->getRenderedPageInfoObj();
-			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out ) {
+			}, function ( PageInfoProcess $failedProcess ) use ( &$procFailed, &$out ) {
 				$out = $failedProcess->getErrorOutput();
 				$procFailed = true;
 			} );
@@ -190,7 +189,7 @@ JS;
 			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj )
 			{
 				$obj = $successfulProcess->getRenderedPageInfoObj();
-			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out )
+			}, function ( PageInfoProcess $failedProcess ) use ( &$procFailed, &$out )
 			{
 				$out = $failedProcess->getErrorOutput();
 				$procFailed = true;
@@ -249,7 +248,7 @@ JS;
 			{
 				$out = $successfulProcess->getErrorOutput();
 				$obj = $successfulProcess->getRenderedPageInfoObj();
-			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out )
+			}, function ( PageInfoProcess $failedProcess ) use ( &$procFailed, &$out )
 			{
 				$out = $failedProcess->getErrorOutput();
 				$procFailed = true;
@@ -301,7 +300,7 @@ JS;
 			{
 				$out = $successfulProcess->getErrorOutput();
 				$obj = $successfulProcess->getRenderedPageInfoObj();
-			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out )
+			}, function ( PageInfoProcess $failedProcess ) use ( &$procFailed, &$out )
 			{
 				$out = $failedProcess->getErrorOutput();
 				$procFailed = true;
@@ -342,7 +341,7 @@ JS;
 			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj )
 			{
 				$obj = $successfulProcess->getRenderedPageInfoObj();
-			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out )
+			}, function ( PageInfoProcess $failedProcess ) use ( &$procFailed, &$out )
 			{
 				$out = $failedProcess->getErrorOutput();
 				$procFailed = true;
@@ -472,7 +471,7 @@ JS;
 			{
 				$obj = $successfulProcess->getRenderedPageInfoObj();
 
-			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out )
+			}, function ( PageInfoProcess $failedProcess ) use ( &$procFailed, &$out )
 			{
 				$out = $failedProcess->getErrorOutput();
 				$procFailed = true;
@@ -515,7 +514,7 @@ JS;
 			{
 				$obj = $successfulProcess->getRenderedPageInfoObj();
 
-			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out )
+			}, function ( PageInfoProcess $failedProcess ) use ( &$procFailed, &$out )
 			{
 				$out = $failedProcess->getErrorOutput();
 				$procFailed = true;
@@ -563,7 +562,7 @@ JS;
 				$out = $successfulProcess->getErrorOutput();
 				$obj = $successfulProcess->getRenderedPageInfoObj();
 
-			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out )
+			}, function ( PageInfoProcess $failedProcess ) use ( &$procFailed, &$out )
 			{
 				$out = $failedProcess->getErrorOutput();
 				$procFailed = true;
@@ -608,7 +607,7 @@ JS;
 				$out = $successfulProcess->getErrorOutput();
 				$obj = $successfulProcess->getRenderedPageInfoObj();
 
-			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out )
+			}, function ( PageInfoProcess $failedProcess ) use ( &$procFailed, &$out )
 			{
 				$out = $failedProcess->getErrorOutput();
 				$procFailed = true;
@@ -655,7 +654,7 @@ JS;
 				$out = $successfulProcess->getErrorOutput();
 				$obj = $successfulProcess->getRenderedPageInfoObj();
 
-			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out )
+			}, function ( PageInfoProcess $failedProcess ) use ( &$procFailed, &$out )
 			{
 				$out = $failedProcess->getErrorOutput();
 				$procFailed = true;
@@ -702,7 +701,7 @@ JS;
 				$out = $successfulProcess->getErrorOutput();
 				$obj = $successfulProcess->getRenderedPageInfoObj();
 
-			}, function ( NodeProcess $failedProcess ) use ( &$procFailed, &$out )
+			}, function ( PageInfoProcess $failedProcess ) use ( &$procFailed, &$out )
 			{
 				$out = $failedProcess->getErrorOutput();
 				$procFailed = true;
