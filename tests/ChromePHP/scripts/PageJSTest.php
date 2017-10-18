@@ -207,9 +207,10 @@ HTML;
 		$this->assertNotNull( $obj );
 
 		// Console logs check
+		$this->assertGreaterThan( 0, count( $obj->consoleLogs ) );
 		$this->assertStringStartsWith( 'DEBUG:', $obj->consoleLogs[0] );
 		$this->assertStringStartsWith( 'INFO:', $obj->consoleLogs[1] );
-		$this->assertStringStartsWith( 'WARN:', $obj->consoleLogs[2] );
+		$this->assertStringStartsWith( 'WARNING:', $obj->consoleLogs[2] );
 		$this->assertStringStartsWith( 'ERROR:', $obj->consoleLogs[3] );
 		$this->assertStringStartsWith( 'LOG:', $obj->consoleLogs[4] );
 	}

@@ -107,38 +107,24 @@ let mainRequests = [];
         }
     }
 
-    // Logging
-    logger.debug('Intercepting console logs');
-    const levels = ['debug', 'info', 'warn', 'error', 'log'];
-    page.evaluateOnNewDocument(function(levels) {
-        (function(){
-            let c = console;
-            levels.forEach((level) => {
-                c[level+'old'] = c[level];
-                console[level] = function () {
-                    let args = Array.prototype.slice.call(arguments); // toArray
-                    args.unshift(level);
-                    c[level+'old'].apply(this, args);
-                };
-            });
-        })();
-    }, levels);
-
+    // Page.js
+    // class ConsoleMessage {
+    //     /**
+    //      * @param {string} type
+    //      * @param {string} text
+    //      * @param {!Array<*>} args
+    //      */
+    //     constructor(type, text, args) {
+    //         this.type = type;
+    //         this.text = text;
+    //         this.args = args;
+    //     }
+    // }
     // Save console messages
-    page.on('console', (...args) => {
-        if(args.length > 1) {
-            let level = args[0];
-            if (levels.includes(level)) {
-                for (let i = 1; i < args.length; ++i) {
-                    results.consoleLogs.push(level.toUpperCase() + ': ' + args[i]);
-                }
-            }
-        } else {
-            // Backup for other console functions
-            for (let i = 1; i < args.length; ++i) {
-                results.consoleLogs.push(`${i}: ${args[i]}`);
-            }
-        }
+    page.on('console', (msgObj) => {
+        let level = msgObj.type;
+        let msg = msgObj.text;
+        results.consoleLogs.push(level.toUpperCase() + ': ' + msg);
     });
 
     // Save all the request objects to later

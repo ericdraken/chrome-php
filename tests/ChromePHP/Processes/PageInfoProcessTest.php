@@ -118,9 +118,56 @@ class PageInfoProcessTest extends ProcessFixture
 	}
 
 	/**
+	 * Test that we get all the console messages
+	 */
+	public function testConsoleLogs()
+	{
+		$process = new PageInfoProcess( self::$server . "/console.html" );
+
+		$manager = new ChromeProcessManager( self::$defaultPort, 1 );
+
+		// Enqueue the job
+		$manager
+			->enqueue( $process )
+			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj )
+			{
+				$out = $successfulProcess->getErrorOutput();
+				$obj = $successfulProcess->getRenderedPageInfoObj();
+
+			}, function ( PageInfoProcess $failedProcess ) use ( &$procFailed, &$out )
+			{
+				$out = $failedProcess->getErrorOutput();
+				$procFailed = true;
+			} );
+
+		$manager->then( null, function () use ( &$queueFailed )
+		{
+			$queueFailed = true;
+		} );
+
+		// Start processing
+		$manager->run();
+
+		$procFailed && $this->fail( "Process should not have failed" );
+		$queueFailed && $this->fail( "Queue should not have failed" );
+
+		/** @var RenderedHTTPPageInfo $obj */
+		// Console logs check
+		$this->assertGreaterThan( 0, count( $obj->getConsoleLogs() ) );
+		$this->assertStringStartsWith( 'DEBUG:', $obj->getConsoleLogs()[0] );
+		$this->assertStringStartsWith( 'INFO:', $obj->getConsoleLogs()[1] );
+		$this->assertStringStartsWith( 'WARNING:', $obj->getConsoleLogs()[2] );
+		$this->assertStringStartsWith( 'WARNING:', $obj->getConsoleLogs()[3] );
+		$this->assertStringStartsWith( 'ERROR:', $obj->getConsoleLogs()[4] );
+		$this->assertStringStartsWith( 'LOG:', $obj->getConsoleLogs()[5] );
+		$this->assertStringStartsWith( 'LOG:', $obj->getConsoleLogs()[6] );
+	}
+
+	/**
 	 * Test iPhone 6 emulation was successfully set in the browser page
 	 * @depends testConstructorSetEmulation
 	 * @depends testInfoObjectReturned
+	 * @depends testConsoleLogs
 	 */
 	public function testIPhoneEmulation()
 	{
@@ -152,6 +199,7 @@ class PageInfoProcessTest extends ProcessFixture
 
 		// Check the console logs in order
 		$logs = $obj->getConsoleLogs();
+		$this->assertGreaterThan( 0, count( $logs ) );
 		$this->assertStringEndsWith( $emu->getUserAgent(), $logs[0] );
 		$this->assertStringEndsWith( 'iOS', $logs[1] );
 		$this->assertStringEndsWith( 'true', $logs[2] );    // mobile
@@ -496,48 +544,6 @@ JS;
 		$this->assertEmpty( $obj->getRawHtml() );
 		$this->assertEmpty( $obj->getRenderedHtml() );
 		$this->assertEquals( 'image/jpeg', $obj->getLastResponse()->getResponseHeaders()->{'content-type'} );
-	}
-
-	/**
-	 * Test that we get all the console messages
-	 */
-	public function testConsoleLogs()
-	{
-		$process = new PageInfoProcess( self::$server . "/console.html" );
-
-		$manager = new ChromeProcessManager( self::$defaultPort, 1 );
-
-		// Enqueue the job
-		$manager
-			->enqueue( $process )
-			->then( function ( PageInfoProcess $successfulProcess ) use ( &$obj )
-			{
-				$obj = $successfulProcess->getRenderedPageInfoObj();
-
-			}, function ( PageInfoProcess $failedProcess ) use ( &$procFailed, &$out )
-			{
-				$out = $failedProcess->getErrorOutput();
-				$procFailed = true;
-			} );
-
-		$manager->then( null, function () use ( &$queueFailed )
-		{
-			$queueFailed = true;
-		} );
-
-		// Start processing
-		$manager->run();
-
-		$procFailed && $this->fail( "Process should not have failed" );
-		$queueFailed && $this->fail( "Queue should not have failed" );
-
-		/** @var RenderedHTTPPageInfo $obj */
-		// Console logs check
-		$this->assertStringStartsWith( 'DEBUG:', $obj->getConsoleLogs()[0] );
-		$this->assertStringStartsWith( 'INFO:', $obj->getConsoleLogs()[1] );
-		$this->assertStringStartsWith( 'WARN:', $obj->getConsoleLogs()[2] );
-		$this->assertStringStartsWith( 'ERROR:', $obj->getConsoleLogs()[3] );
-		$this->assertStringStartsWith( 'LOG:', $obj->getConsoleLogs()[4] );
 	}
 
 	/**
