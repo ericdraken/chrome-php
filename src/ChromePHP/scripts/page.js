@@ -166,7 +166,7 @@ let mainRequests = [];
                 false;
 
         // Only allow text content types
-        if (!contentType || contentType.indexOf('text/') !== 0) {
+        if (!contentType || contentType.indexOf('text/html') !== 0) {
             return;
         }
 
