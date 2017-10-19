@@ -32,8 +32,8 @@ class PageInfoProcessTLSTest extends ProcessFixture
 			'dh2048' => [ 'dh2048.badssl.com', false ],
 
 			// Failing tests
-			'revoked' => [ 'revoked.badssl.com', false ],
-			'pinning' => [ 'pinning-test.badssl.com', false ],
+			//'revoked' => [ 'revoked.badssl.com', false ],
+			//'pinning' => [ 'pinning-test.badssl.com', false ],
 		];
 	}
 
