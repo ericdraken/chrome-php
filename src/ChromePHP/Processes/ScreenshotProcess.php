@@ -13,10 +13,13 @@ use Draken\ChromePHP\Exceptions\InvalidArgumentException;
 use Draken\ChromePHP\Exceptions\RuntimeException;
 use Draken\ChromePHP\Processes\Response\RenderedHTTPPageInfo;
 use Draken\ChromePHP\Processes\Response\ScreenshotInfo;
+use Draken\ChromePHP\Processes\Traits\ChromeRunnerTraits;
 use Draken\ChromePHP\Utils\Paths;
 
 class ScreenshotProcess extends PageInfoProcess
 {
+	use ChromeRunnerTraits;
+
 	/** @var Emulation[]  */
 	private $emulations = [];
 
@@ -24,7 +27,7 @@ class ScreenshotProcess extends PageInfoProcess
 	private $screenshots = [];
 
 	/**
-	 * ScreenshotProcess constructor.
+	 * ScreenshotProcessInterface constructor.
 	 *
 	 * @param string $url
 	 * @param Emulation[] $emulations

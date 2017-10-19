@@ -12,12 +12,14 @@ use Draken\ChromePHP\Core\NodeProcess;
 use Draken\ChromePHP\Emulations\Emulation;
 use Draken\ChromePHP\Exceptions\HttpResponseException;
 use Draken\ChromePHP\Processes\Response\RenderedHTTPPageInfo;
+use Draken\ChromePHP\Processes\Traits\ChromeRunnerTraits;
 use Draken\ChromePHP\Processes\Traits\ProcessTraits;
 use Draken\ChromePHP\Utils\Paths;
 
 class PageInfoProcess extends NodeProcess
 {
 	use ProcessTraits;
+	use ChromeRunnerTraits;
 
 	/** @var RenderedHTTPPageInfo */
 	protected $renderedPageInfoObj;
