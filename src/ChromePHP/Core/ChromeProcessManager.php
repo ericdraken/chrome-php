@@ -62,7 +62,7 @@ class ChromeProcessManager extends ProcessManager
 	 * @param null $parallelizationLimit
 	 * @param string $chromeBinaryPath
 	 */
-	public function __construct( int $startingChromePort = 9222, $parallelizationLimit = null, $chromeBinaryPath = '' )
+	public function __construct( int $startingChromePort = 9222, $parallelizationLimit = null, string $chromeBinaryPath = '' )
 	{
 		// Create a new Chrome processors manager
 		// but set the binary path later

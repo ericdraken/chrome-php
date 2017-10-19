@@ -43,7 +43,7 @@ class ChromeProcessors extends LoggableBase
 	 * @param int $startingPort
 	 * @param string $chromeBinaryPath
 	 */
-	public function __construct( $startingPort = 9222, $chromeBinaryPath = '' )
+	public function __construct( int $startingPort = 9222, string $chromeBinaryPath = '' )
 	{
 		// Verify and save port
 		$port = intval($startingPort, 10);
