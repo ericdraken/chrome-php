@@ -10,7 +10,7 @@ namespace DrakenTest\ChromePHP\Processes;
 
 use Draken\ChromePHP\Processes\PageInfoProcess;
 
-class ChromeRunnerTest extends ProcessFixture
+class ChromeRunnerTest extends ProcessTestFixture
 {
 	/**
 	 * Test a simple single run works

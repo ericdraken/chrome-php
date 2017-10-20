@@ -12,7 +12,7 @@ use Draken\ChromePHP\Core\ChromeProcessManager;
 use Draken\ChromePHP\Processes\HarProcess;
 use Draken\ChromePHP\Processes\Response\HarInfo;
 
-class HarProcessTest extends ProcessFixture
+class HarProcessTest extends ProcessTestFixture
 {
 	public function testHar()
 	{

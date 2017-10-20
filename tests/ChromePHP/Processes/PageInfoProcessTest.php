@@ -14,7 +14,7 @@ use Draken\ChromePHP\Exceptions\InvalidArgumentException;
 use Draken\ChromePHP\Processes\PageInfoProcess;
 use Draken\ChromePHP\Processes\Response\RenderedHTTPPageInfo;
 
-class PageInfoProcessTest extends ProcessFixture
+class PageInfoProcessTest extends ProcessTestFixture
 {
 	/**
 	 * Test no exceptions are thrown on basic constructor

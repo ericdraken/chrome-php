@@ -1,6 +1,6 @@
 <?php
 /**
- * ChromePHP - ProcessFixture.php
+ * ChromePHP - ProcessTestFixture.php
  * Created by: Eric Draken
  * Date: 2017/10/18
  * Copyright (c) 2017
@@ -12,7 +12,7 @@ use Draken\ChromePHP\Commands\LinuxCommands;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Process\Process;
 
-class ProcessFixture extends TestCase
+class ProcessTestFixture extends TestCase
 {
 	protected static $defaultPort = 9222;
 

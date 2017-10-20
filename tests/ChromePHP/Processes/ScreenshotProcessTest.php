@@ -20,7 +20,7 @@ use Draken\ChromePHP\Processes\ScreenshotProcess;
 use ReflectionMethod;
 use ReflectionObject;
 
-class ScreenshotProcessTest extends ProcessFixture
+class ScreenshotProcessTest extends ProcessTestFixture
 {
 	/**
 	 * The emulations array is properly set

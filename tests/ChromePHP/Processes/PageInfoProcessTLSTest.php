@@ -12,7 +12,7 @@ use Draken\ChromePHP\Core\ChromeProcessManager;
 use Draken\ChromePHP\Processes\PageInfoProcess;
 use Draken\ChromePHP\Processes\Response\RenderedHTTPPageInfo;
 
-class PageInfoProcessTLSTest extends ProcessFixture
+class PageInfoProcessTLSTest extends ProcessTestFixture
 {
 	/**
 	 * @return array
