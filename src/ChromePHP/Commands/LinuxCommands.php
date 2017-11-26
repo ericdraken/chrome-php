@@ -59,9 +59,9 @@ class LinuxCommands
 
 	/**
 	 * Command to kill all running headless Chrome processes.
-	 * A signal can be specified. For example, 2 is simply "quit" and 15 is "terminate"
+	 * A signal can be specified. For example, 2(INT) is simply "quit" and 15(TERM) is "terminate"
 	 */
-	const killChromeProcessesCmd = 'pkill -f --signal %u "remote-debugging-port=[\'\"]*[0-9]{2,}[\'\"]*"';
+	const killChromeProcessesCmd = 'pkill -%s -f "remote-debugging-port=[\'\"]*[0-9]{2,}[\'\"]*"';
 
 	/**
 	 * Kill a process

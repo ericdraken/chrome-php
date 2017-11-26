@@ -245,8 +245,11 @@ class ChromeCommands extends LoggableBase
 		switch ($signal)
 		{
 			case 2:
+                $signalName = 'INT'; break;
 			case 9:
+                $signalName = 'KIL'; break;
 			case 15:
+                $signalName = 'TERM'; break;
 				break;
 
 			default: {
@@ -259,7 +262,7 @@ class ChromeCommands extends LoggableBase
 			$cmd = sprintf( LinuxCommands::killSingleProcessCmd, $signal, $pid );
 		} else {
 			// All Chrome processes
-			$cmd = sprintf( LinuxCommands::killChromeProcessesCmd, $signal );
+			$cmd = sprintf( LinuxCommands::killChromeProcessesCmd, $signalName );  // Use the signal name, not integer
 		}
 
 		self::logger()->info("Exec [ $cmd ]");

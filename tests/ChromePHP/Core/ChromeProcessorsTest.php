@@ -22,7 +22,7 @@ class ChromeProcessorsTest extends TestCase
 	 */
 	protected function setUp()
 	{
-		exec( sprintf( LinuxCommands::killChromeProcessesCmd, 9 ) );
+		exec( sprintf( LinuxCommands::killChromeProcessesCmd, 'KILL' ) );
 	}
 
 	/**
@@ -30,7 +30,7 @@ class ChromeProcessorsTest extends TestCase
 	 */
 	protected function tearDown()
 	{
-		exec( sprintf( LinuxCommands::killChromeProcessesCmd, 2 ) );
+		exec( sprintf( LinuxCommands::killChromeProcessesCmd, 'INT' ) );
 	}
 
 	/**

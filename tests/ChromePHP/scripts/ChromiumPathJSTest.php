@@ -23,7 +23,7 @@ class ChromiumPathJSTest extends TestCase
 	 */
 	public static function setUpBeforeClass()
 	{
-		exec( sprintf( LinuxCommands::killChromeProcessesCmd, 9 ) );
+		exec( sprintf( LinuxCommands::killChromeProcessesCmd, 'KILL' ) );
 	}
 
 	/**
@@ -32,12 +32,12 @@ class ChromiumPathJSTest extends TestCase
 	 */
 	public function tearDown()
 	{
-		exec( sprintf( LinuxCommands::killChromeProcessesCmd, 2 ) );
+		exec( sprintf( LinuxCommands::killChromeProcessesCmd, 'INT' ) );
 	}
 
 	/**
 	 * Test chromiumpath.js returns local Chrome binary path
-	 * e.g. /mnt/hgfs/PhpstormProjects/chrome-php/node_modules/puppeteer/.local-chromium/linux-497674/chrome-linux/chrome
+	 * e.g. /mnt/hgfs/PhpstormProjects/EricDraken/public/ChromePHP/node_modules/puppeteer/.local-chromium/linux-497674/chrome-linux/chrome
 	 */
 	public function testChromiumPathJS()
 	{

@@ -23,7 +23,7 @@ class EndpointJSTest extends TestCase
 	 */
 	public static function setUpBeforeClass()
 	{
-		exec( sprintf( LinuxCommands::killChromeProcessesCmd, 9 ) );
+		exec( sprintf( LinuxCommands::killChromeProcessesCmd, 'KILL' ) );
 	}
 
 	/**
@@ -32,7 +32,7 @@ class EndpointJSTest extends TestCase
 	 */
 	public function tearDown()
 	{
-		exec( sprintf( LinuxCommands::killChromeProcessesCmd, 2 ) );
+		exec( sprintf( LinuxCommands::killChromeProcessesCmd, 'INT' ) );
 	}
 
 	/**

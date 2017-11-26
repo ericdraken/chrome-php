@@ -26,7 +26,7 @@ class ProcessTestFixture extends TestCase
 	public static function setUpBeforeClass()
 	{
 		// Kill any chrome servers
-		exec( sprintf( LinuxCommands::killChromeProcessesCmd, 9 ) );
+		exec( sprintf( LinuxCommands::killChromeProcessesCmd, 'KILL' ) );
 
 		// Kill the test server or anything on that port
 		// REF: https://stackoverflow.com/a/9169237/1938889
@@ -56,7 +56,7 @@ class ProcessTestFixture extends TestCase
 	 */
 	public function tearDown()
 	{
-		exec( sprintf( LinuxCommands::killChromeProcessesCmd, 2 ) );
+		exec( sprintf( LinuxCommands::killChromeProcessesCmd, 'INT' ) );
 	}
 
 	protected function dataUri( $html = '' )
